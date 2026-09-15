@@ -59,6 +59,21 @@ button { border: 0; }
 .cl-public-event__details span { padding:10px 13px; border-radius:10px; background:rgba(255,255,255,.05); color:#ddd5ed; }
 .cl-public-event .cl-footer { margin-top:34px; padding-bottom:0; }
 
+.cl-rsvp { display:flex; flex-direction:column; gap:16px; margin:30px auto 0; padding:24px; text-align:left; border:1px solid rgba(255,255,255,.08); border-radius:20px; background:rgba(255,255,255,.025); }
+.cl-rsvp__heading { text-align:center; }
+.cl-rsvp__heading h2 { margin:0 0 6px; font-size:24px; }
+.cl-rsvp__heading p { margin:0; color:#a69abd; font-size:13px; }
+.cl-rsvp label { display:flex; flex-direction:column; gap:8px; color:#ddd5ed; font-size:14px; font-weight:700; }
+.cl-rsvp label span { color:#8f82aa; font-weight:400; }
+.cl-rsvp input,.cl-rsvp textarea { width:100%; padding:14px 15px; color:#fff; background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.1); border-radius:12px; outline:none; }
+.cl-rsvp textarea { resize:vertical; }
+.cl-rsvp input:focus,.cl-rsvp textarea:focus { border-color:#00c8ff; box-shadow:0 0 0 3px rgba(0,200,255,.08); }
+.cl-rsvp__choices { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.cl-rsvp__choices button { min-height:48px; padding:10px 8px; color:#ddd5ed; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); border-radius:12px; cursor:pointer; font-weight:800; }
+.cl-rsvp__choices button:hover,.cl-rsvp__choices button.is-selected { color:#fff; border-color:rgba(0,200,255,.55); background:rgba(0,200,255,.1); }
+.cl-rsvp-success { display:flex; flex-direction:column; gap:8px; margin:30px auto 0; padding:22px; border:1px solid rgba(34,197,94,.25); border-radius:18px; background:rgba(34,197,94,.08); }
+.cl-rsvp-success span { color:#b9afd4; font-size:14px; }
+
 @media (max-width: 680px) {
   .cl-hero { padding-top:48px; }
   .cl-grid { grid-template-columns:1fr; }
@@ -67,4 +82,6 @@ button { border: 0; }
   .cl-type-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .cl-form-row { grid-template-columns:1fr; }
   .cl-public-event { margin-top:28px; padding:34px 20px; }
+  .cl-rsvp { padding:18px; }
+  .cl-rsvp__choices { grid-template-columns:1fr; }
 }
