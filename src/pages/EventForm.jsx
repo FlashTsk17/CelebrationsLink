@@ -23,7 +23,7 @@ export default function EventForm({ mode }) {
 
     const created = createEvent({ ...form, type: typeId, mode })
     sessionStorage.removeItem('cl:event-type')
-    navigate(getEventPublicPath(created))
+    navigate(mode === 'invitation' ? `/organiser/dashboard?event=${encodeURIComponent(created.slug)}` : getEventPublicPath(created))
   }
 
   return (
@@ -44,7 +44,7 @@ export default function EventForm({ mode }) {
             </div>
             <label>Lieu {mode === 'invitation' && <span>(obligatoire)</span>}<input value={form.location} onChange={update('location')} placeholder="Ex. Salle des fêtes, Cotonou" required={mode === 'invitation'} /></label>
             {error && <p className="cl-form-error" role="alert">{error}</p>}
-            <button className="cl-primary-button" type="submit">Créer et voir mon lien →</button>
+            <button className="cl-primary-button" type="submit">Créer et continuer →</button>
           </form>
         </section>
       </div>
