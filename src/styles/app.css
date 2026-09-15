@@ -1,0 +1,39 @@
+* { box-sizing: border-box; }
+
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #fff;
+  background: #07030f;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body { margin: 0; min-width: 320px; background: #07030f; }
+button, input, textarea, select { font: inherit; }
+button { border: 0; }
+
+.cl-shell {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% -10%, rgba(107,33,232,.28), transparent 38%), #07030f;
+}
+
+.cl-container { width: min(960px, calc(100% - 32px)); margin: 0 auto; }
+.cl-hero { padding: 72px 0 44px; text-align: center; }
+.cl-brand { font-size: clamp(34px, 8vw, 64px); font-weight: 900; letter-spacing: -.04em; background: linear-gradient(110deg,#8b5cf6,#00c8ff); -webkit-background-clip:text; color:transparent; }
+.cl-tagline { max-width: 620px; margin: 14px auto 0; color: #b9afd4; line-height: 1.6; }
+.cl-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding-bottom: 72px; }
+.cl-action-card { width: 100%; text-align: left; display:flex; align-items:center; gap:16px; padding:22px; border:1px solid rgba(255,255,255,.09); border-radius:20px; color:#fff; background:linear-gradient(145deg,rgba(22,8,55,.94),rgba(10,5,24,.94)); cursor:pointer; transition:transform .2s,border-color .2s,box-shadow .2s; }
+.cl-action-card:hover { transform:translateY(-3px); border-color:rgba(0,200,255,.38); box-shadow:0 14px 40px rgba(0,0,0,.28); }
+.cl-action-card__emoji { font-size:38px; flex:0 0 auto; }
+.cl-action-card__body { display:flex; flex-direction:column; gap:6px; flex:1; }
+.cl-action-card__body strong { font-size:18px; }
+.cl-action-card__body span { color:#a69abd; font-size:13px; line-height:1.5; }
+.cl-action-card__arrow { color:#00c8ff; font-size:22px; }
+.cl-section-title { text-align:center; margin:0 0 22px; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#8f82aa; }
+.cl-footer { border-top:1px solid rgba(255,255,255,.07); padding:24px 0 40px; text-align:center; color:#6f6485; font-size:12px; }
+
+@media (max-width: 680px) {
+  .cl-hero { padding-top:48px; }
+  .cl-grid { grid-template-columns:1fr; }
+  .cl-action-card { padding:18px; }
+}
