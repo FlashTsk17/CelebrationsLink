@@ -8,11 +8,11 @@ export default function Organiser() {
       <div className="cl-container">
         <section className="cl-hero">
           <div className="cl-brand">Organiser un événement</div>
-          <p className="cl-tagline">Choisis le format qui correspond à ton événement. Tu peux annoncer simplement ou envoyer une véritable invitation avec RSVP.</p>
+          <p className="cl-tagline">Commence par choisir le format. Ensuite, CélébrationsLink te guide jusqu’à ton lien public.</p>
         </section>
         <section className="cl-grid">
-          <ActionCard emoji="📢" title="Créer une annonce" description="Présente ton événement et partage l'information. Sans RSVP." onClick={() => navigate('/organiser/annonce')} />
-          <ActionCard emoji="💌" title="Créer une invitation" description="Crée une invitation complète avec date, lieu et réponses des invités." onClick={() => navigate('/organiser/invitation')} />
+          <ActionCard emoji="📢" title="Créer une annonce" description="Présente ton événement et partage l'information. Sans RSVP." onClick={() => navigate('/organiser/type')} />
+          <ActionCard emoji="💌" title="Créer une invitation" description="Crée une invitation complète avec date, lieu et réponses des invités." onClick={() => navigate('/organiser/type')} />
         </section>
         <div className="cl-footer">CélébrationsLink · Crée. Annonce. Invite. Célèbre. Partage. ❤️</div>
       </div>
