@@ -1,12 +1,11 @@
 -- CélébrationsLink · Music Storage foundation
--- Creates a private bucket for user-uploaded celebration audio.
--- Public playback is intentionally handled through signed URLs from the app/service layer.
+-- Public playback for published celebrations; uploads remain member-owned.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'celebration-music',
   'celebration-music',
-  false,
+  true,
   15728640,
   array[
     'audio/mpeg',
@@ -23,22 +22,19 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
+-- Public pages must be able to read media attached to published celebrations.
+drop policy if exists "public can read celebration music" on storage.objects;
+create policy "public can read celebration music"
+on storage.objects for select
+to anon, authenticated
+using (bucket_id = 'celebration-music');
+
 -- Authenticated members may upload only inside their own user directory.
 drop policy if exists "members can upload celebration music" on storage.objects;
 create policy "members can upload celebration music"
 on storage.objects for insert
 to authenticated
 with check (
-  bucket_id = 'celebration-music'
-  and (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- Members may read/manage only their own uploaded files.
-drop policy if exists "members can read celebration music" on storage.objects;
-create policy "members can read celebration music"
-on storage.objects for select
-to authenticated
-using (
   bucket_id = 'celebration-music'
   and (storage.foldername(name))[1] = auth.uid()::text
 );
