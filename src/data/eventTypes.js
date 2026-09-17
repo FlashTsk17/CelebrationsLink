@@ -26,3 +26,5 @@ export const EVENT_MODES = {
   ANNOUNCEMENT: 'announcement',
   INVITATION: 'invitation',
 }
+
+export const getEventType = (id) => EVENT_TYPES.find((type) => type.id === id)
