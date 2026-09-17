@@ -36,6 +36,7 @@ function toLocalEvent(input, events) {
     cover: input.cover || '',
     template: input.template || 'default',
     status: 'published',
+    owner_id: null,
     created_at: new Date().toISOString(),
   }
 }
@@ -58,6 +59,8 @@ export async function createEvent(input) {
   if (existingError) throw existingError
 
   const slug = uniqueSlug(baseSlug, existing || [])
+  const { data: { user } = {} } = await supabase.auth.getUser()
+
   const payload = {
     slug,
     mode: input.mode,
@@ -71,6 +74,11 @@ export async function createEvent(input) {
     cover: input.cover || '',
     template: input.template || 'default',
     status: 'published',
+    owner_id: user?.id || null,
+  }
+
+  if (!user) {
+    throw new Error('Connecte-toi pour créer un événement avec gestion sécurisée.')
   }
 
   const { data, error } = await supabase.from('events').insert(payload).select().single()
