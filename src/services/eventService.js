@@ -1,4 +1,5 @@
 import { createId, readLocal, saveLocal, buildPublicPath } from './storage.js'
+import { isSupabaseConfigured, supabase } from './supabase.js'
 
 const EVENTS_KEY = 'events'
 
@@ -20,9 +21,8 @@ function uniqueSlug(base, events) {
   return slug
 }
 
-export function createEvent(input) {
-  const events = readLocal(EVENTS_KEY, [])
-  const event = {
+function toLocalEvent(input, events) {
+  return {
     id: createId(),
     slug: uniqueSlug(input.title, events),
     mode: input.mode,
@@ -38,13 +38,60 @@ export function createEvent(input) {
     status: 'published',
     created_at: new Date().toISOString(),
   }
-
-  saveLocal(EVENTS_KEY, [...events, event])
-  return event
 }
 
-export function getEventBySlug(slug) {
-  return readLocal(EVENTS_KEY, []).find((event) => event.slug === slug) || null
+export async function createEvent(input) {
+  if (!isSupabaseConfigured) {
+    const events = readLocal(EVENTS_KEY, [])
+    const event = toLocalEvent(input, events)
+    saveLocal(EVENTS_KEY, [...events, event])
+    return event
+  }
+
+  const baseSlug = slugify(input.title)
+  const { data: existing, error: existingError } = await supabase
+    .from('events')
+    .select('slug')
+    .like('slug', `${baseSlug}%`)
+    .limit(100)
+
+  if (existingError) throw existingError
+
+  const slug = uniqueSlug(baseSlug, existing || [])
+  const payload = {
+    slug,
+    mode: input.mode,
+    type: input.type,
+    title: input.title.trim(),
+    description: input.description?.trim() || '',
+    host: input.host?.trim() || '',
+    date: input.date || null,
+    time: input.time || null,
+    location: input.location?.trim() || '',
+    cover: input.cover || '',
+    template: input.template || 'default',
+    status: 'published',
+  }
+
+  const { data, error } = await supabase.from('events').insert(payload).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function getEventBySlug(slug) {
+  if (!isSupabaseConfigured) {
+    return readLocal(EVENTS_KEY, []).find((event) => event.slug === slug) || null
+  }
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .maybeSingle()
+
+  if (error) throw error
+  return data
 }
 
 export function getEventPublicPath(event) {
