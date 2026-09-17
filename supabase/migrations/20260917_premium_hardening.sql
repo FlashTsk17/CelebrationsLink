@@ -16,15 +16,15 @@ drop policy if exists "users can update own profile" on public.profiles;
 drop policy if exists "users can read own profile" on public.profiles;
 create policy "users can read own profile"
 on public.profiles for select
- to authenticated
- using (id = auth.uid());
+to authenticated
+using (id = auth.uid());
 
+-- Keep the canonical schema names: admin_notes / processed_by.
 alter table public.premium_requests
-  add column if not exists reviewed_at timestamptz,
-  add column if not exists reviewed_by uuid references auth.users(id),
-  add column if not exists admin_note text;
+  add column if not exists admin_notes text not null default '',
+  add column if not exists processed_by uuid references auth.users(id) on delete set null,
+  add column if not exists processed_at timestamptz;
 
--- Prevent duplicate open requests for the same member.
 create unique index if not exists premium_requests_one_open_per_user
 on public.premium_requests (user_id)
 where status in ('pending', 'contacted', 'payment_pending');
@@ -34,12 +34,14 @@ drop policy if exists "users can create own premium requests" on public.premium_
 drop policy if exists "users can read own premium requests" on public.premium_requests;
 create policy "users can create own premium requests"
 on public.premium_requests for insert
- to authenticated
- with check (user_id = auth.uid());
+to authenticated
+with check (user_id = auth.uid());
 
 create policy "users can read own premium requests"
 on public.premium_requests for select
- to authenticated
- using (user_id = auth.uid());
+to authenticated
+using (user_id = auth.uid());
 
 -- No direct UPDATE/DELETE policy for members.
+drop policy if exists "users can update own premium requests" on public.premium_requests;
+drop policy if exists "users can delete own premium requests" on public.premium_requests;
