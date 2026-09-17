@@ -49,7 +49,6 @@ export async function createEvent(input) {
     return { ...event, managementToken: null, managementPath: null }
   }
 
-  const { data: { user } = {} } = await supabase.auth.getUser()
   const { data, error } = await supabase.functions.invoke('create-event', {
     body: {
       title: input.title,
@@ -62,13 +61,23 @@ export async function createEvent(input) {
       template: input.template,
       type: input.type,
       mode: input.mode,
-      authenticated: Boolean(user),
     },
   })
 
   if (error) throw error
   if (!data?.event) throw new Error(data?.error || 'Impossible de créer l’événement.')
   return data
+}
+
+export async function listMyEvents() {
+  if (!isSupabaseConfigured || !supabase) return []
+  const { data, error } = await supabase
+    .from('events')
+    .select('id, slug, mode, type, title, description, host, date, time, location, cover, template, status, owner_id, created_at')
+    .eq('owner_id', (await supabase.auth.getUser()).data.user?.id || '')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
 }
 
 export async function getEventBySlug(slug) {
