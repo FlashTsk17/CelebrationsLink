@@ -10,20 +10,28 @@ export default function EventForm({ mode }) {
   const type = useMemo(() => getEventType(typeId), [typeId])
   const [form, setForm] = useState({ title: '', host: '', description: '', date: '', time: '', location: '' })
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
+    setError('')
     if (!form.title.trim()) return setError('Donne un titre à ton événement.')
     if (!form.host.trim()) return setError('Indique qui organise l’événement.')
     if (mode === 'invitation' && (!form.date || !form.time || !form.location.trim())) {
       return setError('Pour une invitation, la date, l’heure et le lieu sont obligatoires.')
     }
 
-    const created = createEvent({ ...form, type: typeId, mode })
-    sessionStorage.removeItem('cl:event-type')
-    navigate(mode === 'invitation' ? `/organiser/dashboard?event=${encodeURIComponent(created.slug)}` : getEventPublicPath(created))
+    setSaving(true)
+    try {
+      const created = await createEvent({ ...form, type: typeId, mode })
+      sessionStorage.removeItem('cl:event-type')
+      navigate(mode === 'invitation' ? `/organiser/dashboard?event=${encodeURIComponent(created.slug)}` : getEventPublicPath(created))
+    } catch (submissionError) {
+      setError(submissionError?.message || 'Impossible de créer l’événement. Réessaie.')
+      setSaving(false)
+    }
   }
 
   return (
@@ -44,7 +52,7 @@ export default function EventForm({ mode }) {
             </div>
             <label>Lieu {mode === 'invitation' && <span>(obligatoire)</span>}<input value={form.location} onChange={update('location')} placeholder="Ex. Salle des fêtes, Cotonou" required={mode === 'invitation'} /></label>
             {error && <p className="cl-form-error" role="alert">{error}</p>}
-            <button className="cl-primary-button" type="submit">Créer et continuer →</button>
+            <button className="cl-primary-button" type="submit" disabled={saving}>{saving ? 'Création en cours…' : 'Créer et continuer →'}</button>
           </form>
         </section>
       </div>
