@@ -9,7 +9,7 @@ export default function OrganiserType() {
 
   const choose = (type) => {
     sessionStorage.setItem('cl:event-type', type)
-    const targetMode = mode === 'invitation' ? 'invitation' : 'announcement'
+    const targetMode = mode === 'invitation' ? 'invitation' : 'annonce'
     navigate(`/organiser/${targetMode}?type=${encodeURIComponent(type)}`)
   }
 
