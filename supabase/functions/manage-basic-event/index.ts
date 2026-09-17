@@ -23,9 +23,24 @@ Deno.serve(async (req) => {
     if (!url || !serviceKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const hash = await sha256(token)
-    const { data: event, error } = await admin.from('events').select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at').eq('slug', slug).eq('management_token_hash', hash).maybeSingle()
+    const { data: secret, error: secretError } = await admin
+      .from('event_management_secrets')
+      .select('event_id')
+      .eq('token_hash', hash)
+      .is('revoked_at', null)
+      .maybeSingle()
+    if (secretError) throw secretError
+    if (!secret) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
+
+    const { data: event, error } = await admin
+      .from('events')
+      .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at')
+      .eq('id', secret.event_id)
+      .eq('slug', slug)
+      .maybeSingle()
     if (error) throw error
     if (!event) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
+
     const { data: guests, error: guestsError } = await admin.from('guests').select('id,event_id,name,status,message,created_at').eq('event_id', event.id).order('created_at', { ascending: false })
     if (guestsError) throw guestsError
     return json({ event, guests: guests || [] })
