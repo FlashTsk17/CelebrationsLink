@@ -9,6 +9,7 @@ import PublicEvent from './pages/PublicEvent.jsx'
 import OrganiserDashboard from './pages/OrganiserDashboard.jsx'
 import OrganiserManage from './pages/OrganiserManage.jsx'
 import Celebrer from './pages/Celebrer.jsx'
+import Membre from './pages/Membre.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import './styles/app.css'
 
@@ -17,6 +18,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/membre" element={<Membre />} />
         <Route path="/organiser" element={<Organiser />} />
         <Route path="/organiser/type" element={<OrganiserType />} />
         <Route path="/organiser/annonce" element={<EventForm mode="announcement" />} />
