@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MUSIC_CATEGORIES, getRecommendedMusic } from '../data/musicLibrary.js'
-import { createLocalMusicTrack, getAllLibraryMusic, validateAudioFile } from '../services/musicEngine.js'
+import { createLocalMusicTrack, getAllLibraryMusic, uploadMusicFile, validateAudioFile } from '../services/musicEngine.js'
 
 function formatTime(value) {
   if (!Number.isFinite(value)) return '0:00'
@@ -15,13 +15,14 @@ export default function MusicPicker({ occasion, value, onChange }) {
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [volume, setVolume] = useState(0.85)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const recommendations = useMemo(() => getRecommendedMusic(occasion), [occasion])
   const tracks = useMemo(() => category === 'recommended' ? recommendations : getAllLibraryMusic().filter((track) => track.category === category), [category, recommendations])
 
   useEffect(() => {
     if (mode === 'library' && value?.source === 'custom') onChange(null)
-  }, [mode])
+  }, [mode, value?.source, onChange])
 
   useEffect(() => () => {
     audioRef.current?.pause()
@@ -29,10 +30,8 @@ export default function MusicPicker({ occasion, value, onChange }) {
   }, [])
 
   useEffect(() => {
-    if (category !== 'recommended' && !tracks.some((track) => track.id === value?.id)) {
-      if (value?.source === 'library') onChange(null)
-    }
-  }, [category, tracks, value?.id, value?.source])
+    if (category !== 'recommended' && !tracks.some((track) => track.id === value?.id) && value?.source === 'library') onChange(null)
+  }, [category, tracks, value?.id, value?.source, onChange])
 
   const stop = () => {
     audioRef.current?.pause()
@@ -83,7 +82,7 @@ export default function MusicPicker({ occasion, value, onChange }) {
     chooseLibrary(recommended)
   }
 
-  const handleFile = (event) => {
+  const handleFile = async (event) => {
     setError('')
     const file = event.target.files?.[0]
     if (!file) return
@@ -91,12 +90,17 @@ export default function MusicPicker({ occasion, value, onChange }) {
       const validation = validateAudioFile(file)
       if (!validation.valid) throw new Error(validation.error)
       stop()
+      setUploading(true)
+      const track = await uploadMusicFile(file)
       if (value?.source === 'custom' && value.src) URL.revokeObjectURL(value.src)
-      const track = createLocalMusicTrack(file)
-      onChange({ source: 'custom', id: track.id, title: track.title, artist: track.artist, category: track.category, fileName: track.fileName, mimeType: file.type, size: track.size, src: track.src, isLocal: true })
+      onChange({ source: 'custom', id: track.id, title: track.title, artist: track.artist, category: track.category, fileName: track.fileName, mimeType: track.mimeType || file.type, size: track.size, src: track.src || '', storage: track.storage, storagePath: track.storagePath, isLocal: track.isLocal || false })
       setMode('custom')
-    } catch (err) { setError(err.message) }
-    event.target.value = ''
+    } catch (err) {
+      setError(err.message || 'Impossible d’enregistrer cette musique.')
+    } finally {
+      setUploading(false)
+      event.target.value = ''
+    }
   }
 
   const custom = value?.source === 'custom' ? value : null
@@ -129,9 +133,10 @@ export default function MusicPicker({ occasion, value, onChange }) {
         </div>
         {playing && <div className="cl-music-controls"><input type="range" min="0" max={duration || 0} step="0.1" value={Math.min(currentTime, duration || 0)} onChange={seek} aria-label="Position de lecture" /><div><span>{formatTime(currentTime)} / {formatTime(duration)}</span><label>🔊 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={changeVolume} aria-label="Volume" /></label></div></div>}
       </> : <div className="cl-custom-music">
-        <label className="cl-upload-audio"><span>📁</span><strong>{custom ? 'Changer ma musique' : 'Choisir un fichier audio'}</strong><small>MP3, M4A, WAV, OGG, WEBM ou AAC · 15 Mo max</small><input type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,audio/aac,.mp3,.m4a,.wav,.ogg,.webm,.aac" onChange={handleFile} /></label>
-        {custom && <div className="cl-custom-music__selected"><div><strong>{custom.title}</strong><span>{custom.fileName}</span></div><audio controls preload="metadata" src={custom.src} /></div>}
-        <p className="cl-music-note">Ta musique personnelle est utilisée pour cette création. Elle sera envoyée vers le stockage sécurisé lorsque le mode public Supabase sera activé.</p>
+        <label className="cl-upload-audio"><span>📁</span><strong>{uploading ? 'Enregistrement en cours…' : custom ? 'Changer ma musique' : 'Choisir un fichier audio'}</strong><small>MP3, M4A, WAV, OGG, WEBM ou AAC · 15 Mo max</small><input type="file" disabled={uploading} accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm,audio/aac,.mp3,.m4a,.wav,.ogg,.webm,.aac" onChange={handleFile} /></label>
+        {custom && custom.src && <div className="cl-custom-music__selected"><div><strong>{custom.title}</strong><span>{custom.fileName}</span></div><audio controls preload="metadata" src={custom.src} /></div>}
+        {custom && custom.storage === 'supabase' && <p className="cl-music-cloud-status">☁️ Musique enregistrée dans le stockage sécurisé.</p>}
+        <p className="cl-music-note">Avec un compte Membre et Supabase activé, ta musique est conservée dans le cloud pour pouvoir être utilisée sur une célébration publique.</p>
       </div>}
       {error && <p className="cl-form-error" role="alert">{error}</p>}
     </section>
