@@ -7,21 +7,51 @@ import { getEventType } from '../data/eventTypes.js'
 export default function PublicEvent() {
   const { slug } = useParams()
   const [event, setEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [name, setName] = useState('')
   const [status, setStatus] = useState(RSVP_STATUS.YES)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => setEvent(getEventBySlug(slug)), [slug])
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setLoadError('')
+
+    getEventBySlug(slug)
+      .then((data) => {
+        if (active) setEvent(data)
+      })
+      .catch(() => {
+        if (active) setLoadError('Impossible de charger cet événement. Vérifie ta connexion puis réessaie.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [slug])
 
   const type = useMemo(() => getEventType(event?.type), [event?.type])
+
+  if (loading) {
+    return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><p>Chargement de l’événement…</p></section></div></main>
+  }
+
+  if (loadError) {
+    return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><h1>Un problème est survenu</h1><p>{loadError}</p></section></div></main>
+  }
 
   if (!event) {
     return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><h1>Événement introuvable</h1><p>Ce lien n’existe pas ou cet événement n’est plus disponible.</p></section></div></main>
   }
 
-  const submitRsvp = (submitEvent) => {
+  const submitRsvp = async (submitEvent) => {
     submitEvent.preventDefault()
     setError('')
 
@@ -30,11 +60,14 @@ export default function PublicEvent() {
       return
     }
 
+    setSubmitting(true)
     try {
-      createRsvp(event.id, { name, status, message })
+      await createRsvp(event.id, { name, status, message })
       setSubmitted(true)
     } catch {
-      setError('Impossible d’enregistrer ta réponse. Réessaie.')
+      setError('Impossible d’enregistrer ta réponse. Vérifie ta connexion puis réessaie.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -69,7 +102,7 @@ export default function PublicEvent() {
                 </div>
                 <label>Message <span>(facultatif)</span><textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Un petit mot pour l’organisateur…" rows="3" /></label>
                 {error && <p className="cl-form-error" role="alert">{error}</p>}
-                <button className="cl-primary-button" type="submit">Envoyer ma réponse</button>
+                <button className="cl-primary-button" type="submit" disabled={submitting}>{submitting ? 'Envoi…' : 'Envoyer ma réponse'}</button>
               </form>
             )
           )}
