@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { EVENT_TYPES } from '../data/eventTypes.js'
 import { CELEBRATION_TEMPLATES } from '../data/celebrationTemplates.js'
 import { createCelebration } from '../services/celebrationService.js'
+import { getCurrentUser } from '../services/auth.js'
 import MusicPicker from '../components/MusicPicker.jsx'
 
 function readImage(file) {
@@ -32,11 +33,22 @@ export default function CelebrationCreate() {
     try { setPhotos(await Promise.all(files.map(readImage))) } catch { setError('Impossible de charger les photos. Essaie avec d’autres images.') }
   }
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
+    setError('')
     if (!form.recipient.trim() || !form.message.trim()) { setError('Indique au moins le destinataire et ton message.'); return }
-    const celebration = createCelebration({ ...form, photos, music, title: form.title.trim() || `${selectedType?.label || 'Célébration'} pour ${form.recipient.trim()}` })
-    setCreated(celebration)
+    try {
+      const user = await getCurrentUser()
+      const hasCloudMusic = music?.storage === 'supabase'
+      if (hasCloudMusic && !user) throw new Error('Reconnecte-toi à ton compte Membre avant de publier cette musique.')
+      const persistence = user && (hasCloudMusic || music?.source === 'library') ? 'cloud' : 'local'
+      if (persistence === 'local' && music?.storage === 'local') {
+        setError('Ta musique personnelle reste liée à cet appareil en mode Basic. Crée un compte Membre pour la rendre disponible sur le lien public.')
+        return
+      }
+      const celebration = await createCelebration({ ...form, photos, music, persistence, title: form.title.trim() || `${selectedType?.label || 'Célébration'} pour ${form.recipient.trim()}` })
+      setCreated(celebration)
+    } catch (err) { setError(err?.message || 'Impossible de créer la célébration.') }
   }
 
   if (created) {
@@ -46,7 +58,7 @@ export default function CelebrationCreate() {
       if (navigator.share) await navigator.share({ title: created.title, text: `Une célébration pour ${created.recipient} ❤️`, url })
       else await navigator.clipboard?.writeText(url)
     }
-    return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-success-panel"><p className="cl-eyebrow">🎉 C’est prêt !</p><h1>Ton vœu a été créé.</h1><p>Un simple lien suffit maintenant pour le partager.</p><div className="cl-link-box">{window.location.origin}{publicPath}</div><div className="cl-grid"><button className="cl-primary-button" type="button" onClick={() => navigate(publicPath)}>Voir ma célébration →</button><button className="cl-secondary-button" type="button" onClick={share}>Partager / copier le lien</button><button className="cl-secondary-button" type="button" onClick={() => navigate('/')}>Retour à l’accueil</button></div></section></div></main>
+    return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-success-panel"><p className="cl-eyebrow">🎉 C’est prêt !</p><h1>Ton vœu a été créé.</h1><p>{created.owner_id ? 'La célébration est enregistrée dans le cloud et peut être ouverte depuis un autre appareil.' : 'Un simple lien suffit maintenant pour le partager sur cet appareil.'}</p><div className="cl-link-box">{window.location.origin}{publicPath}</div><div className="cl-grid"><button className="cl-primary-button" type="button" onClick={() => navigate(publicPath)}>Voir ma célébration →</button><button className="cl-secondary-button" type="button" onClick={share}>Partager / copier le lien</button><button className="cl-secondary-button" type="button" onClick={() => navigate('/')}>Retour à l’accueil</button></div></section></div></main>
   }
 
   return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-studio-panel"><div className="cl-studio-heading"><div><p className="cl-eyebrow">💌 Celebration Studio · Sans compte</p><h1>Crée une expérience qui lui ressemble.</h1><p>Personnalise ton message, choisis une ambiance, une musique et ajoute quelques souvenirs.</p></div><div className={`cl-studio-mini cl-studio-mini--${selectedTemplate.accent}`}>{selectedType?.emoji || '✨'}<strong>{selectedTemplate.name}</strong></div></div><div className="cl-studio-layout">
