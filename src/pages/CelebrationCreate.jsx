@@ -63,9 +63,10 @@ export default function CelebrationCreate() {
       const user = await getCurrentUser()
       const hasCloudMusic = music?.storage === 'supabase'
       if (hasCloudMusic && !user) throw new Error('Reconnecte-toi à ton compte Membre avant de publier cette musique.')
+      if (photoFiles.length > 0 && !user) throw new Error('Les photos sur un lien public nécessitent un compte Membre. Crée ton compte gratuitement pour les conserver dans le cloud.')
       const persistence = user && (hasCloudMusic || music?.source === 'library' || photoFiles.length > 0) ? 'cloud' : 'local'
       if (persistence === 'local' && music?.storage === 'local') {
-        throw new Error('Ta musique personnelle reste liée à cet appareil en mode Basic. Crée un compte Membre pour la rendre disponible sur le lien public.')
+        throw new Error('Ta musique personnelle nécessite un compte Membre pour être conservée sur le lien public. Tu peux aussi créer la célébration sans musique.')
       }
 
       let photos = photoPreviews
@@ -101,7 +102,7 @@ export default function CelebrationCreate() {
       <div className="cl-form-row"><label>À qui s’adresse le vœu ? *<input value={form.recipient} onChange={(e) => update('recipient', e.target.value)} placeholder="Ex. Nadia" required /></label><label>Ton prénom<input value={form.sender} onChange={(e) => update('sender', e.target.value)} placeholder="Ex. Tsadok" /></label></div>
       <label>Titre<input value={form.title} onChange={(e) => update('title', e.target.value)} placeholder="Ex. Joyeux anniversaire Nadia 🎂" /></label>
       <label>Ton message *<textarea value={form.message} onChange={(e) => update('message', e.target.value)} placeholder="Écris ton message ici…" rows="7" required /></label>
-      <label>Ajouter des photos <span>Jusqu’à 5 images · 8 Mo max par image</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={handlePhotos} /></label>
+      <label>Ajouter des photos <span>Jusqu’à 5 images · 8 Mo max par image · compte Membre requis pour le lien public</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={handlePhotos} /></label>
       {photoPreviews.length > 0 && <div className="cl-photo-picker">{photoPreviews.map((photo, index) => <div key={`${photo.slice(0, 20)}-${index}`}><img src={photo} alt={`Souvenir ${index + 1}`} /><button type="button" onClick={() => removePhoto(index)} aria-label={`Supprimer la photo ${index + 1}`}>×</button></div>)}</div>}
       <MusicPicker occasion={form.occasion} value={music} onChange={setMusic} />
       <fieldset><legend>Choisis ton ambiance</legend><div className="cl-template-grid">{CELEBRATION_TEMPLATES.map((template) => <button key={template.id} type="button" className={`cl-template-card cl-template-card--${template.accent} ${form.template === template.id ? 'is-selected' : ''}`} onClick={() => update('template', template.id)}><span className="cl-template-card__preview">{template.id === 'romantic' ? '♥' : template.id === 'minimal' ? '✦' : template.id === 'joyful' ? '✹' : '✧'}</span><strong>{template.name}</strong><span>{template.description}</span></button>)}</div></fieldset>
