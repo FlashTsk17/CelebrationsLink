@@ -7,6 +7,7 @@ import OrganiserType from './pages/OrganiserType.jsx'
 import EventForm from './pages/EventForm.jsx'
 import PublicEvent from './pages/PublicEvent.jsx'
 import OrganiserDashboard from './pages/OrganiserDashboard.jsx'
+import OrganiserManage from './pages/OrganiserManage.jsx'
 import Celebrer from './pages/Celebrer.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import './styles/app.css'
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/organiser/annonce" element={<EventForm mode="announcement" />} />
         <Route path="/organiser/invitation" element={<EventForm mode="invitation" />} />
         <Route path="/organiser/dashboard" element={<OrganiserDashboard />} />
+        <Route path="/organiser/manage" element={<OrganiserManage />} />
         <Route path="/celebrer" element={<Celebrer />} />
         <Route path="/celebrer/type" element={<ComingSoon title="Choisir une occasion" />} />
         <Route path="/celebrer/personnaliser" element={<ComingSoon title="Personnaliser ton vœu" />} />
