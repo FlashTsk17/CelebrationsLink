@@ -66,16 +66,25 @@ Deno.serve(async (req) => {
       const { data, error } = await admin.from('events').insert({
         slug, mode, type, title, description, host, date, time, location,
         cover: String(body.cover || ''), template: String(body.template || 'default'),
-        status: 'published', owner_id: null, management_token_hash: managementTokenHash,
-      }).select().single()
+        status: 'published', owner_id: null,
+      }).select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,owner_id,created_at').single()
       if (!error) { event = data; break }
       if (error.code !== '23505') throw error
     }
 
     if (!event) return json({ error: 'Impossible de générer un lien unique. Réessaie.' }, 409)
 
+    const { error: secretError } = await admin.from('event_management_secrets').insert({
+      event_id: event.id,
+      token_hash: managementTokenHash,
+    })
+    if (secretError) {
+      await admin.from('events').delete().eq('id', event.id)
+      throw secretError
+    }
+
     return json({
-      event: { ...event, management_token_hash: undefined },
+      event,
       managementToken,
       managementPath: `/organiser/manage?event=${encodeURIComponent(event.slug)}#token=${encodeURIComponent(managementToken)}`,
     })
