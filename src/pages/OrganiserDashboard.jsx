@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getEventBySlug } from '../services/eventService.js'
+import { getEventBySlug, getEventPublicPath } from '../services/eventService.js'
 import { getRsvpSummary, listRsvps, RSVP_STATUS } from '../services/rsvp.js'
+import { copyText, getAbsoluteUrl, shareLink } from '../services/share.js'
+import { getEventType } from '../data/eventTypes.js'
 
 const LABELS = {
   [RSVP_STATUS.YES]: 'Oui',
@@ -18,6 +20,7 @@ export default function OrganiserDashboard() {
   const [summary, setSummary] = useState({ total: 0, yes: 0, maybe: 0, no: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [shareMessage, setShareMessage] = useState('')
 
   useEffect(() => {
     let active = true
@@ -60,6 +63,32 @@ export default function OrganiserDashboard() {
     return () => { active = false }
   }, [slug])
 
+  const type = useMemo(() => getEventType(event?.type), [event?.type])
+  const publicUrl = event ? getAbsoluteUrl(getEventPublicPath(event)) : ''
+
+  async function handleCopy() {
+    try {
+      await copyText(publicUrl)
+      setShareMessage('Lien copié ! Tu peux maintenant le partager où tu veux.')
+    } catch {
+      setShareMessage('Impossible de copier le lien automatiquement.')
+    }
+  }
+
+  async function handleShare() {
+    try {
+      const shared = await shareLink({
+        title: event.title,
+        text: event.mode === 'invitation' ? `Invitation : ${event.title}` : `Annonce : ${event.title}`,
+        url: publicUrl,
+      })
+      if (shared) setShareMessage('Partage ouvert.')
+      else await handleCopy()
+    } catch (shareError) {
+      if (shareError?.name !== 'AbortError') setShareMessage('Le partage a été annulé ou n’est pas disponible.')
+    }
+  }
+
   if (loading) {
     return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><p>Chargement de ton espace organisateur…</p></section></div></main>
   }
@@ -80,6 +109,24 @@ export default function OrganiserDashboard() {
           <p className="cl-eyebrow">Espace organisateur</p>
           <h1>{event.title}</h1>
           <p>{event.mode === 'invitation' ? 'Voici les réponses reçues pour ton invitation.' : 'Ton annonce est prête à être partagée.'}</p>
+
+          <div className="cl-event-info">
+            <span>{type?.emoji || '✨'} {type?.label || 'Événement'}</span>
+            {event.date && <span>📅 {event.date}</span>}
+            {event.time && <span>🕐 {event.time}</span>}
+            {event.location && <span>📍 {event.location}</span>}
+          </div>
+
+          <div className="cl-share-box">
+            <strong>🔗 Ton lien public</strong>
+            <p>Partage ce lien avec tes invités ou avec les personnes que tu souhaites informer.</p>
+            <div className="cl-link-box">{publicUrl}</div>
+            <div className="cl-share-actions">
+              <button className="cl-primary-button" type="button" onClick={handleShare}>📤 Partager</button>
+              <button className="cl-secondary-button" type="button" onClick={handleCopy}>📋 Copier le lien</button>
+            </div>
+            {shareMessage && <p className="cl-share-feedback" role="status">{shareMessage}</p>}
+          </div>
 
           {event.mode === 'invitation' && (
             <>
@@ -110,6 +157,7 @@ export default function OrganiserDashboard() {
           )}
 
           <button className="cl-secondary-button" type="button" onClick={() => navigate(`/e/${event.slug}`)}>Voir l’événement public →</button>
+          <button className="cl-secondary-button" type="button" onClick={() => navigate('/organiser')}>＋ Créer un autre événement</button>
         </section>
       </div>
     </main>
