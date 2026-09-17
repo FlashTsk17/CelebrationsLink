@@ -9,6 +9,7 @@ import PublicEvent from './pages/PublicEvent.jsx'
 import OrganiserDashboard from './pages/OrganiserDashboard.jsx'
 import OrganiserManage from './pages/OrganiserManage.jsx'
 import Celebrer from './pages/Celebrer.jsx'
+import CelebrationCreate from './pages/CelebrationCreate.jsx'
 import Celebration from './pages/Celebration.jsx'
 import MemberAuth from './pages/MemberAuth.jsx'
 import MemberSpace from './pages/MemberSpace.jsx'
@@ -32,7 +33,7 @@ export default function App() {
     <Route path="/organiser/manage" element={<OrganiserManage />} />
     <Route path="/celebrer" element={<Celebrer />} />
     <Route path="/celebrer/type" element={<ComingSoon title="Choisir une occasion" />} />
-    <Route path="/celebrer/personnaliser" element={<ComingSoon title="Personnaliser ton vœu" />} />
+    <Route path="/celebrer/personnaliser" element={<CelebrationCreate />} />
     <Route path="/e/:slug" element={<PublicEvent />} />
     <Route path="/c/:slug" element={<Celebration />} />
     <Route path="/birthday" element={<BirthdayLink />} />
