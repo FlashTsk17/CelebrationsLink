@@ -1,47 +1,64 @@
--- CélébrationsLink · initial relational schema
--- Run this file in the Supabase SQL Editor.
+-- CélébrationsLink · ownership and organizer security schema
+-- Run after the initial schema in the Supabase SQL Editor.
 
-create extension if not exists pgcrypto;
+-- Every authenticated organizer owns the events they create.
+alter table public.events
+  add column if not exists owner_id uuid references auth.users(id) on delete set null;
 
-create table if not exists public.events (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique,
-  mode text not null check (mode in ('announcement', 'invitation')),
-  type text not null,
-  title text not null,
-  description text not null default '',
-  host text not null,
-  date date,
-  time time,
-  location text not null default '',
-  cover text not null default '',
-  template text not null default 'default',
-  status text not null default 'published' check (status in ('draft', 'published', 'archived')),
-  created_at timestamptz not null default now()
-);
+create index if not exists events_owner_id_idx on public.events(owner_id);
 
-create table if not exists public.guests (
-  id uuid primary key default gen_random_uuid(),
-  event_id uuid not null references public.events(id) on delete cascade,
-  name text not null,
-  status text not null check (status in ('yes', 'maybe', 'no')),
-  message text not null default '',
-  created_at timestamptz not null default now()
-);
-
-create index if not exists events_slug_idx on public.events(slug);
-create index if not exists guests_event_id_idx on public.guests(event_id);
-create index if not exists guests_event_status_idx on public.guests(event_id, status);
-
--- Public events must be readable through their public slug.
-alter table public.events enable row level security;
-alter table public.guests enable row level security;
+-- Replace the broad public event policy with two explicit responsibilities:
+-- public visitors can read published events, while organizers can read their own events.
+drop policy if exists "public can read published events" on public.events;
 
 create policy "public can read published events"
 on public.events for select
-using (status = 'published');
+to anon, authenticated
+using (status = 'published' or owner_id = auth.uid());
 
--- Guests may submit RSVP responses without an account.
+-- Authenticated organizers may create events only for themselves.
+drop policy if exists "authenticated can create own events" on public.events;
+
+create policy "authenticated can create own events"
+on public.events for insert
+to authenticated
+with check (owner_id = auth.uid());
+
+-- Organizers may update or archive only their own events.
+drop policy if exists "authenticated can update own events" on public.events;
+
+create policy "authenticated can update own events"
+on public.events for update
+to authenticated
+using (owner_id = auth.uid())
+with check (owner_id = auth.uid());
+
+drop policy if exists "authenticated can delete own events" on public.events;
+
+create policy "authenticated can delete own events"
+on public.events for delete
+to authenticated
+using (owner_id = auth.uid());
+
+-- RSVP data stays private. Only the owner of the parent event can read it.
+drop policy if exists "public can read guests" on public.guests;
+drop policy if exists "organizer can read own guests" on public.guests;
+
+create policy "organizer can read own guests"
+on public.guests for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.events e
+    where e.id = guests.event_id
+      and e.owner_id = auth.uid()
+  )
+);
+
+-- Public RSVP submission remains available without an account.
+drop policy if exists "public can submit rsvp" on public.guests;
+
 create policy "public can submit rsvp"
 on public.guests for insert
 to anon, authenticated
@@ -54,5 +71,37 @@ with check (
   )
 );
 
--- RSVP information is intentionally not publicly readable.
--- Organizer dashboard read access will be added with authenticated ownership.
+-- Organizers can update/delete their own RSVP records if needed later.
+create policy "organizer can update own guests"
+on public.guests for update
+to authenticated
+using (
+  exists (
+    select 1 from public.events e
+    where e.id = guests.event_id
+      and e.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.events e
+    where e.id = guests.event_id
+      and e.owner_id = auth.uid()
+  )
+);
+
+create policy "organizer can delete own guests"
+on public.guests for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.events e
+    where e.id = guests.event_id
+      and e.owner_id = auth.uid()
+  )
+);
+
+-- Important:
+-- Existing events remain valid with owner_id = NULL.
+-- They remain publicly readable while published, but are not manageable
+-- through authenticated owner policies until explicitly claimed/migrated.
