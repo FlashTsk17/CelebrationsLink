@@ -49,7 +49,7 @@ export async function createEvent(input) {
     return { ...event, managementToken: null, managementPath: null }
   }
 
-  const { data, error } = await supabase.functions.invoke('create-event', {
+  const { data, error } = await supabase.functions.invoke('create-basic-event', {
     body: {
       title: input.title,
       host: input.host,
