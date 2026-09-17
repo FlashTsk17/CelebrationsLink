@@ -22,18 +22,30 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const service = createClient(supabaseUrl, serviceRoleKey)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!supabaseUrl || !serviceRoleKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
+
+    const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const { token, action = 'read' } = await request.json()
 
     if (typeof token !== 'string' || token.length < 32) return json({ error: 'Jeton de gestion invalide.' }, 401)
 
     const tokenHash = await sha256(token)
+    const { data: secret, error: secretError } = await service
+      .from('event_management_secrets')
+      .select('event_id')
+      .eq('token_hash', tokenHash)
+      .is('revoked_at', null)
+      .maybeSingle()
+
+    if (secretError) throw secretError
+    if (!secret) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
+
     const { data: event, error: eventError } = await service
       .from('events')
       .select('id, slug, mode, type, title, description, host, date, time, location, cover, template, status, created_at')
-      .eq('management_token_hash', tokenHash)
+      .eq('id', secret.event_id)
       .maybeSingle()
 
     if (eventError) throw eventError
