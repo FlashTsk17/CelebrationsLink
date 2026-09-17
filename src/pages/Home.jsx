@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import ActionCard from '../components/ActionCard.jsx'
+import MemberAccess from '../components/MemberAccess.jsx'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -11,6 +12,8 @@ export default function Home() {
           <div className="cl-brand">CélébrationsLink</div>
           <p className="cl-tagline">Crée. Annonce. Invite. Célèbre. Partage. ❤️<br />Des expériences digitales simples et mémorables pour tous les moments qui comptent.</p>
         </section>
+
+        <MemberAccess />
 
         <section>
           <h2 className="cl-section-title">Que veux-tu faire ?</h2>
