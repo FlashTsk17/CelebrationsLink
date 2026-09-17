@@ -57,6 +57,7 @@ export async function uploadMusicFile(file) {
   })
   if (error) throw error
 
+  const { data } = supabase.storage.from(MUSIC_BUCKET).getPublicUrl(path)
   return {
     id: `storage-${path}`,
     title: file.name.replace(/\.[^/.]+$/, ''),
@@ -65,22 +66,20 @@ export async function uploadMusicFile(file) {
     occasions: [],
     storage: 'supabase',
     storagePath: path,
+    src: data?.publicUrl || '',
     fileName: file.name,
     mimeType: file.type,
     size: file.size,
   }
 }
 
-export async function getMusicPlaybackUrl(track, expiresIn = 3600) {
+export async function getMusicPlaybackUrl(track) {
   if (!track) return null
   if (track.src) return track.src
   if (track.storage !== 'supabase' || !track.storagePath || !supabase) return null
 
-  const { data, error } = await supabase.storage
-    .from(MUSIC_BUCKET)
-    .createSignedUrl(track.storagePath, expiresIn)
-  if (error) throw error
-  return data?.signedUrl || null
+  const { data } = supabase.storage.from(MUSIC_BUCKET).getPublicUrl(track.storagePath)
+  return data?.publicUrl || null
 }
 
 export async function removeStoredMusic(track) {
