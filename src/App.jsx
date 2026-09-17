@@ -11,6 +11,7 @@ import OrganiserManage from './pages/OrganiserManage.jsx'
 import Celebrer from './pages/Celebrer.jsx'
 import MemberAuth from './pages/MemberAuth.jsx'
 import MemberSpace from './pages/MemberSpace.jsx'
+import Premium from './pages/Premium.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import './styles/app.css'
 
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/membre" element={<MemberAuth />} />
         <Route path="/membre/espace" element={<MemberSpace />} />
+        <Route path="/premium" element={<Premium />} />
         <Route path="/organiser" element={<Organiser />} />
         <Route path="/organiser/type" element={<OrganiserType />} />
         <Route path="/organiser/annonce" element={<EventForm mode="announcement" />} />
