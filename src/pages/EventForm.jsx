@@ -25,9 +25,15 @@ export default function EventForm({ mode }) {
 
     setSaving(true)
     try {
-      const created = await createEvent({ ...form, type: typeId, mode })
+      const result = await createEvent({ ...form, type: typeId, mode })
       sessionStorage.removeItem('cl:event-type')
-      navigate(mode === 'invitation' ? `/organiser/dashboard?event=${encodeURIComponent(created.slug)}` : getEventPublicPath(created))
+
+      if (result.managementPath) {
+        navigate(result.managementPath)
+        return
+      }
+
+      navigate(mode === 'invitation' ? `/organiser/dashboard?event=${encodeURIComponent(result.event?.slug || result.slug)}` : getEventPublicPath(result.event || result))
     } catch (submissionError) {
       setError(submissionError?.message || 'Impossible de créer l’événement. Réessaie.')
       setSaving(false)
