@@ -46,43 +46,28 @@ export async function createEvent(input) {
     const events = readLocal(EVENTS_KEY, [])
     const event = toLocalEvent(input, events)
     saveLocal(EVENTS_KEY, [...events, event])
-    return event
+    return { ...event, managementToken: null, managementPath: null }
   }
 
-  const baseSlug = slugify(input.title)
-  const { data: existing, error: existingError } = await supabase
-    .from('events')
-    .select('slug')
-    .like('slug', `${baseSlug}%`)
-    .limit(100)
-
-  if (existingError) throw existingError
-
-  const slug = uniqueSlug(baseSlug, existing || [])
   const { data: { user } = {} } = await supabase.auth.getUser()
+  const { data, error } = await supabase.functions.invoke('create-event', {
+    body: {
+      title: input.title,
+      host: input.host,
+      description: input.description,
+      date: input.date,
+      time: input.time,
+      location: input.location,
+      cover: input.cover,
+      template: input.template,
+      type: input.type,
+      mode: input.mode,
+      authenticated: Boolean(user),
+    },
+  })
 
-  const payload = {
-    slug,
-    mode: input.mode,
-    type: input.type,
-    title: input.title.trim(),
-    description: input.description?.trim() || '',
-    host: input.host?.trim() || '',
-    date: input.date || null,
-    time: input.time || null,
-    location: input.location?.trim() || '',
-    cover: input.cover || '',
-    template: input.template || 'default',
-    status: 'published',
-    owner_id: user?.id || null,
-  }
-
-  if (!user) {
-    throw new Error('Connecte-toi pour créer un événement avec gestion sécurisée.')
-  }
-
-  const { data, error } = await supabase.from('events').insert(payload).select().single()
   if (error) throw error
+  if (!data?.event) throw new Error(data?.error || 'Impossible de créer l’événement.')
   return data
 }
 
@@ -93,7 +78,7 @@ export async function getEventBySlug(slug) {
 
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select('id, slug, mode, type, title, description, host, date, time, location, cover, template, status, owner_id, created_at')
     .eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle()
