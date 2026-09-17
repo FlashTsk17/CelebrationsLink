@@ -12,31 +12,29 @@ import Celebrer from './pages/Celebrer.jsx'
 import MemberAuth from './pages/MemberAuth.jsx'
 import MemberSpace from './pages/MemberSpace.jsx'
 import Premium from './pages/Premium.jsx'
+import AdminPremium from './pages/AdminPremium.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import './styles/app.css'
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/membre" element={<MemberAuth />} />
-        <Route path="/membre/espace" element={<MemberSpace />} />
-        <Route path="/premium" element={<Premium />} />
-        <Route path="/organiser" element={<Organiser />} />
-        <Route path="/organiser/type" element={<OrganiserType />} />
-        <Route path="/organiser/annonce" element={<EventForm mode="announcement" />} />
-        <Route path="/organiser/invitation" element={<EventForm mode="invitation" />} />
-        <Route path="/organiser/dashboard" element={<OrganiserDashboard />} />
-        <Route path="/organiser/manage" element={<OrganiserManage />} />
-        <Route path="/celebrer" element={<Celebrer />} />
-        <Route path="/celebrer/type" element={<ComingSoon title="Choisir une occasion" />} />
-        <Route path="/celebrer/personnaliser" element={<ComingSoon title="Personnaliser ton vœu" />} />
-        <Route path="/e/:slug" element={<PublicEvent />} />
-        <Route path="/c/:slug" element={<ComingSoon title="Célébration" />} />
-        <Route path="/birthday" element={<BirthdayLink />} />
-        <Route path="/fete-meres" element={<FeteMeres />} />
-      </Routes>
-    </BrowserRouter>
-  )
+  return <BrowserRouter><Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/membre" element={<MemberAuth />} />
+    <Route path="/membre/espace" element={<MemberSpace />} />
+    <Route path="/premium" element={<Premium />} />
+    <Route path="/admin/premium" element={<AdminPremium />} />
+    <Route path="/organiser" element={<Organiser />} />
+    <Route path="/organiser/type" element={<OrganiserType />} />
+    <Route path="/organiser/annonce" element={<EventForm mode="announcement" />} />
+    <Route path="/organiser/invitation" element={<EventForm mode="invitation" />} />
+    <Route path="/organiser/dashboard" element={<OrganiserDashboard />} />
+    <Route path="/organiser/manage" element={<OrganiserManage />} />
+    <Route path="/celebrer" element={<Celebrer />} />
+    <Route path="/celebrer/type" element={<ComingSoon title="Choisir une occasion" />} />
+    <Route path="/celebrer/personnaliser" element={<ComingSoon title="Personnaliser ton vœu" />} />
+    <Route path="/e/:slug" element={<PublicEvent />} />
+    <Route path="/c/:slug" element={<ComingSoon title="Célébration" />} />
+    <Route path="/birthday" element={<BirthdayLink />} />
+    <Route path="/fete-meres" element={<FeteMeres />} />
+  </Routes></BrowserRouter>
 }
