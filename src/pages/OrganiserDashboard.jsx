@@ -24,6 +24,7 @@ export default function OrganiserDashboard() {
   const [filter, setFilter] = useState('all')
   const [query, setQuery] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [managementUrl, setManagementUrl] = useState('')
 
   useEffect(() => {
     let active = true
@@ -76,6 +77,11 @@ export default function OrganiserDashboard() {
     })
   }, [rsvps, filter, query])
   const publicUrl = event ? getAbsoluteUrl(getEventPublicPath(event)) : ''
+  useEffect(() => {
+    if (!event) return
+    const token = sessionStorage.getItem(`cl:management-token:${event.slug}`)
+    if (token) setManagementUrl(getAbsoluteUrl(`/organiser/manage?event=${encodeURIComponent(event.slug)}#token=${encodeURIComponent(token)}`))
+  }, [event])
 
   async function handleCopy() {
     try {
