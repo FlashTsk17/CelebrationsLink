@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { EVENT_TYPES } from '../data/eventTypes.js'
+import { EVENT_TYPES, UNIVERSAL_OCCASIONS } from '../data/eventTypes.js'
 import { CELEBRATION_TEMPLATES } from '../data/celebrationTemplates.js'
 import { createCelebration } from '../services/celebrationService.js'
 import { getCurrentUser } from '../services/auth.js'
@@ -26,7 +26,8 @@ export default function CelebrationCreate() {
   const [created, setCreated] = useState(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const selectedType = useMemo(() => EVENT_TYPES.find((type) => type.id === form.occasion), [form.occasion])
+  const allOccasions = useMemo(() => [...EVENT_TYPES, ...UNIVERSAL_OCCASIONS], [])
+  const selectedType = useMemo(() => allOccasions.find((type) => type.id === form.occasion), [allOccasions, form.occasion])
   const selectedTemplate = useMemo(() => CELEBRATION_TEMPLATES.find((template) => template.id === form.template) || CELEBRATION_TEMPLATES[0], [form.template])
   const update = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -96,9 +97,12 @@ export default function CelebrationCreate() {
     return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-success-panel"><p className="cl-eyebrow">🎉 C’est prêt !</p><h1>Ton vœu a été créé.</h1><p>{created.owner_id ? 'La célébration et ses médias sont enregistrés dans le cloud et peuvent être ouverts depuis un autre appareil.' : 'Un simple lien suffit maintenant pour le partager sur cet appareil.'}</p><div className="cl-link-box">{window.location.origin}{publicPath}</div><div className="cl-grid"><button className="cl-primary-button" type="button" onClick={() => navigate(publicPath)}>Voir ma célébration →</button><button className="cl-secondary-button" type="button" onClick={share}>Partager / copier le lien</button><button className="cl-secondary-button" type="button" onClick={() => navigate('/')}>Retour à l’accueil</button></div></section></div></main>
   }
 
-  return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-studio-panel"><div className="cl-studio-heading"><div><p className="cl-eyebrow">💌 Celebration Studio · Sans compte</p><h1>Crée une expérience qui lui ressemble.</h1><p>Personnalise ton message, choisis une ambiance, une musique et ajoute quelques souvenirs.</p></div><div className={`cl-studio-mini cl-studio-mini--${selectedTemplate.accent}`}>{selectedType?.emoji || '✨'}<strong>{selectedTemplate.name}</strong></div></div><div className="cl-studio-layout">
+  return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-studio-panel"><div className="cl-studio-heading"><div><p className="cl-eyebrow">💌 Celebration Studio · Sans compte</p><h1>Crée une expérience qui lui ressemble.</h1><p>Personnalise ton message, choisis une ambiance, une musique et ajoute quelques souvenirs.</p><div className="cl-studio-steps"><span className="is-active">1. Contenu</span><span>2. Style</span><span>3. Enrichir</span><span>4. Publier</span></div></div><div className={`cl-studio-mini cl-studio-mini--${selectedTemplate.accent}`}>{selectedType?.emoji || '✨'}<strong>{selectedTemplate.name}</strong></div></div><div className="cl-studio-layout">
     <form className="cl-form" onSubmit={submit}>
-      <label>Occasion<select value={form.occasion} onChange={(e) => update('occasion', e.target.value)}>{EVENT_TYPES.map((type) => <option key={type.id} value={type.id}>{type.emoji} {type.label}</option>)}</select></label>
+      <label>Occasion<select value={form.occasion} onChange={(e) => update('occasion', e.target.value)}>
+        <optgroup label="Occasions personnelles">{EVENT_TYPES.map((type) => <option key={type.id} value={type.id}>{type.emoji} {type.label}</option>)}</optgroup>
+        <optgroup label="Occasions universelles">{UNIVERSAL_OCCASIONS.map((occasion) => <option key={occasion.id} value={occasion.id}>{occasion.emoji} {occasion.label}</option>)}</optgroup>
+      </select></label>
       <div className="cl-form-row"><label>À qui s’adresse le vœu ? *<input value={form.recipient} onChange={(e) => update('recipient', e.target.value)} placeholder="Ex. Nadia" required /></label><label>Ton prénom<input value={form.sender} onChange={(e) => update('sender', e.target.value)} placeholder="Ex. Tsadok" /></label></div>
       <label>Titre<input value={form.title} onChange={(e) => update('title', e.target.value)} placeholder="Ex. Joyeux anniversaire Nadia 🎂" /></label>
       <label>Ton message *<textarea value={form.message} onChange={(e) => update('message', e.target.value)} placeholder="Écris ton message ici…" rows="7" required /></label>
