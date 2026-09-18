@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
   try {
-    const { slug, token } = await req.json()
+    const { slug, token, action = 'read', payload = {} } = await req.json()
     if (!slug || !token) return json({ error: 'Lien de gestion invalide.' }, 400)
     const url = Deno.env.get('SUPABASE_URL')
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -40,6 +40,33 @@ Deno.serve(async (req) => {
       .maybeSingle()
     if (error) throw error
     if (!event) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
+
+    if (action === 'update') {
+      const allowed = ['title', 'description', 'host', 'date', 'time', 'location', 'cover', 'template']
+      const changes: Record<string, unknown> = {}
+      for (const key of allowed) {
+        if (Object.prototype.hasOwnProperty.call(payload, key)) {
+          changes[key] = typeof payload[key] === 'string' ? payload[key].trim() : payload[key]
+        }
+      }
+      if (!changes.title || !changes.host) return json({ error: 'Le titre et l’organisateur sont obligatoires.' }, 400)
+      if (event.mode === 'invitation' && (!changes.date || !changes.time || !changes.location)) {
+        return json({ error: 'Une invitation doit avoir une date, une heure et un lieu.' }, 400)
+      }
+      const { data: updated, error } = await admin.from('events').update(changes).eq('id', event.id)
+        .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at').single()
+      if (error) throw error
+      return json({ event: updated })
+    }
+
+    if (action === 'status') {
+      const nextStatus = payload.status
+      if (!['published', 'closed', 'archived'].includes(nextStatus)) return json({ error: 'Statut invalide.' }, 400)
+      const { data: updated, error } = await admin.from('events').update({ status: nextStatus }).eq('id', event.id)
+        .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at').single()
+      if (error) throw error
+      return json({ event: updated })
+    }
 
     const { data: guests, error: guestsError } = await admin.from('guests').select('id,event_id,name,status,message,created_at').eq('event_id', event.id).order('created_at', { ascending: false })
     if (guestsError) throw guestsError
