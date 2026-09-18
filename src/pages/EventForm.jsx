@@ -29,6 +29,7 @@ export default function EventForm({ mode }) {
       sessionStorage.removeItem('cl:event-type')
 
       if (result.managementPath) {
+        if (result.managementToken && result.event?.slug) sessionStorage.setItem(`cl:management-token:${result.event.slug}`, result.managementToken)
         navigate(result.managementPath)
         return
       }
