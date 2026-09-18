@@ -5,6 +5,7 @@ import ActionCard from '../components/ActionCard.jsx'
 export default function CelebrationType() {
   const navigate = useNavigate()
   const choose = (occasion) => navigate(`/celebrer/personnaliser?occasion=${encodeURIComponent(occasion)}`)
+  const goHome = () => navigate('/')
 
   return (
     <main className="cl-shell">
@@ -14,8 +15,10 @@ export default function CelebrationType() {
           <p className="cl-tagline">Choisis ce que tu veux célébrer, puis crée ton expérience en quelques minutes.</p>
         </section>
 
+        <button className="cl-secondary-button cl-back-button" type="button" onClick={goHome}>← Accueil</button>
+
         <section>
-          <h2 className="cl-section-title">🎉 Mes occasions</h2>
+          <h2 className="cl-section-title">🎉 Occasions personnelles</h2>
           <div className="cl-grid">
             {EVENT_TYPES.map((type) => (
               <ActionCard key={type.id} emoji={type.emoji} title={type.label} description="Créer une célébration personnalisée" onClick={() => choose(type.id)} />
@@ -30,9 +33,11 @@ export default function CelebrationType() {
               <ActionCard key={occasion.id} emoji={occasion.emoji} title={occasion.label} description="Créer un vœu à partager" onClick={() => choose(occasion.id)} />
             ))}
           </div>
+          <p className="cl-section-note">Ces occasions sont disponibles toute l’année pour créer et partager un vœu.</p>
+          </div>
         </section>
 
-        <button className="cl-secondary-button" type="button" onClick={() => navigate('/celebrer')}>← Retour</button>
+        <button className="cl-secondary-button" type="button" onClick={() => navigate('/celebrer')}>← Retour à Célébrer</button>
       </div>
     </main>
   )
