@@ -21,6 +21,9 @@ export default function OrganiserDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [shareMessage, setShareMessage] = useState('')
+  const [filter, setFilter] = useState('all')
+  const [query, setQuery] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -64,6 +67,14 @@ export default function OrganiserDashboard() {
   }, [slug])
 
   const type = useMemo(() => getEventType(event?.type), [event?.type])
+  const filteredRsvps = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    return rsvps.filter((rsvp) => {
+      const matchesStatus = filter === 'all' || rsvp.status === filter
+      const matchesQuery = !normalized || rsvp.name.toLowerCase().includes(normalized) || (rsvp.message || '').toLowerCase().includes(normalized)
+      return matchesStatus && matchesQuery
+    })
+  }, [rsvps, filter, query])
   const publicUrl = event ? getAbsoluteUrl(getEventPublicPath(event)) : ''
 
   async function handleCopy() {
@@ -72,6 +83,21 @@ export default function OrganiserDashboard() {
       setShareMessage('Lien copié ! Tu peux maintenant le partager où tu veux.')
     } catch {
       setShareMessage('Impossible de copier le lien automatiquement.')
+    }
+  }
+
+  async function refreshRsvps() {
+    if (!event || event.mode !== 'invitation') return
+    setRefreshing(true)
+    try {
+      const [loadedRsvps, loadedSummary] = await Promise.all([listRsvps(event.id), getRsvpSummary(event.id)])
+      setRsvps(loadedRsvps)
+      setSummary(loadedSummary)
+      setShareMessage('Réponses actualisées.')
+    } catch (refreshError) {
+      setShareMessage(refreshError?.message || 'Impossible d’actualiser les réponses.')
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -138,11 +164,22 @@ export default function OrganiserDashboard() {
               </div>
 
               <div className="cl-rsvp-list">
-                <h2>Invités</h2>
+                <div className="cl-list-heading">
+                  <div><h2>Réponses des invités</h2><span>{filteredRsvps.length} résultat{filteredRsvps.length > 1 ? 's' : ''}</span></div>
+                  <button className="cl-small-button" type="button" onClick={refreshRsvps} disabled={refreshing}>{refreshing ? 'Actualisation…' : '↻ Actualiser'}</button>
+                </div>
+                {rsvps.length > 0 && <div className="cl-rsvp-tools">
+                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un invité…" aria-label="Rechercher un invité" />
+                  <select value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrer les réponses">
+                    <option value="all">Toutes les réponses</option><option value="yes">✅ Oui</option><option value="maybe">🤔 Peut-être</option><option value="no">❌ Non</option>
+                  </select>
+                </div>}
                 {rsvps.length === 0 ? (
                   <p className="cl-empty">Aucune réponse pour le moment. Partage ton invitation pour commencer à recevoir des réponses.</p>
+                ) : filteredRsvps.length === 0 ? (
+                  <p className="cl-empty">Aucun invité ne correspond à ta recherche.</p>
                 ) : (
-                  rsvps.map((rsvp) => (
+                  filteredRsvps.map((rsvp) => (
                     <article className="cl-rsvp-item" key={rsvp.id}>
                       <div>
                         <strong>{rsvp.name}</strong>
