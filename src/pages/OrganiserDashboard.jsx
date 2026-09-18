@@ -160,6 +160,20 @@ export default function OrganiserDashboard() {
             {shareMessage && <p className="cl-share-feedback" role="status">{shareMessage}</p>}
           </div>
 
+          {managementUrl && (
+            <div className="cl-share-box cl-management-share-box">
+              <strong>🔐 Ton lien privé de gestion</strong>
+              <p>Garde ce lien précieusement : il permet de retrouver ton événement sans compte.</p>
+              <div className="cl-link-box">{managementUrl}</div>
+              <div className="cl-share-actions">
+                <button className="cl-primary-button" type="button" onClick={async () => {
+                  try { await copyText(managementUrl); setShareMessage('Lien privé de gestion copié.') }
+                  catch { setShareMessage('Impossible de copier le lien privé.') }
+                }}>📋 Copier le lien privé</button>
+              </div>
+            </div>
+          )}
+
           {event.mode === 'invitation' && (
             <>
               <div className="cl-rsvp-summary">
