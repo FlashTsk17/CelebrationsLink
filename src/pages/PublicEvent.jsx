@@ -51,6 +51,8 @@ export default function PublicEvent() {
     return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><h1>Événement introuvable</h1><p>Ce lien n’existe pas ou cet événement n’est plus disponible.</p></section></div></main>
   }
 
+  const isClosed = event.status === 'closed' || event.status === 'archived'
+
   const submitRsvp = async (submitEvent) => {
     submitEvent.preventDefault()
     setError('')
@@ -83,7 +85,12 @@ export default function PublicEvent() {
           {event.date && <div className="cl-public-event__details"><span>📅 {event.date}</span>{event.time && <span>🕐 {event.time}</span>}{event.location && <span>📍 {event.location}</span>}</div>}
 
           {event.mode === 'invitation' && (
-            submitted ? (
+            isClosed ? (
+              <div className="cl-rsvp-success" role="status">
+                <strong>Les réponses sont fermées.</strong>
+                <span>L’organisateur ne reçoit plus de nouvelles réponses pour le moment.</span>
+              </div>
+            ) : submitted ? (
               <div className="cl-rsvp-success" role="status">
                 <strong>Merci, ta réponse est enregistrée ! 🎉</strong>
                 <span>{status === RSVP_STATUS.YES ? 'Nous comptons sur ta présence.' : status === RSVP_STATUS.MAYBE ? 'Ta réponse est notée comme peut-être.' : 'Ta réponse est notée comme indisponible.'}</span>
