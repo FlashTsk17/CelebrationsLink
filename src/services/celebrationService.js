@@ -38,10 +38,13 @@ function buildCelebration(input, id, slug) {
 export async function createCelebration(input) {
   const { data: { user } = {} } = supabase ? await supabase.auth.getUser() : { data: {} }
   const shouldCloudSave = Boolean(isSupabaseConfigured && supabase && user && input.persistence === 'cloud')
+  const base = input.title || input.recipient || input.occasion
+  const localCelebrations = readLocal(CELEBRATIONS_KEY, [])
+  const generatedSlug = `${slugify(base)}-${createId().slice(0, 8)}`
 
   if (shouldCloudSave) {
     const { data, error } = await supabase.from('celebrations').insert({
-      slug: `${slugify(input.title || input.recipient || input.occasion)}-${createId().slice(0, 8)}`,
+      slug: generatedSlug,
       occasion: input.occasion || 'other',
       recipient: input.recipient?.trim() || '',
       sender: input.sender?.trim() || '',
@@ -58,9 +61,8 @@ export async function createCelebration(input) {
     return data
   }
 
-  const celebrations = readLocal(CELEBRATIONS_KEY, [])
-  const celebration = buildCelebration(input, createId(), uniqueSlug(input.title || input.recipient || input.occasion, celebrations))
-  saveLocal(CELEBRATIONS_KEY, [...celebrations, celebration])
+  const celebration = buildCelebration(input, createId(), uniqueSlug(base, localCelebrations))
+  saveLocal(CELEBRATIONS_KEY, [...localCelebrations, celebration])
   return celebration
 }
 
