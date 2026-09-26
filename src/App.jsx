@@ -17,10 +17,11 @@ import MemberSpace from './pages/MemberSpace.jsx'
 import Premium from './pages/Premium.jsx'
 import AdminPremium from './pages/AdminPremium.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
+import AppNavigation from './components/AppNavigation.jsx'
 import './styles/app.css'
 
 export default function App() {
-  return <BrowserRouter><Routes>
+  return <BrowserRouter><AppNavigation /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/membre" element={<MemberAuth />} />
     <Route path="/membre/espace" element={<MemberSpace />} />
@@ -39,5 +40,6 @@ export default function App() {
     <Route path="/c/:slug" element={<Celebration />} />
     <Route path="/birthday" element={<BirthdayLink />} />
     <Route path="/fete-meres" element={<FeteMeres />} />
+    <Route path="*" element={<ComingSoon />} />
   </Routes></BrowserRouter>
 }
