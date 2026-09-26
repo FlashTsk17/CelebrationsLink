@@ -19,6 +19,7 @@ import AdminPremium from './pages/AdminPremium.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import AppNavigation from './components/AppNavigation.jsx'
 import './styles/app.css'
+import './styles/designTokens.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
