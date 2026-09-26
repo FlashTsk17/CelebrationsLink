@@ -20,6 +20,8 @@ import ComingSoon from './pages/ComingSoon.jsx'
 import AppNavigation from './components/AppNavigation.jsx'
 import './styles/app.css'
 import './styles/designTokens.css'
+import './styles/home.css'
+import './styles/studio.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
@@ -39,8 +41,6 @@ export default function App() {
     <Route path="/celebrer/personnaliser" element={<CelebrationCreate />} />
     <Route path="/e/:slug" element={<PublicEvent />} />
     <Route path="/c/:slug" element={<Celebration />} />
-    <Route path="/birthday" element={<BirthdayLink />} />
-    <Route path="/fete-meres" element={<FeteMeres />} />
     <Route path="*" element={<ComingSoon />} />
   </Routes></BrowserRouter>
 }
