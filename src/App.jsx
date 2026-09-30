@@ -22,6 +22,7 @@ import './styles/app.css'
 import './styles/designTokens.css'
 import './styles/home.css'
 import './styles/studio.css'
+import './styles/account.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
