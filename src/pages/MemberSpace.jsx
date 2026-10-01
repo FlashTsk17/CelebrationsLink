@@ -41,7 +41,7 @@ export default function MemberSpace() {
     navigate('/')
   }
 
-  if (loading) return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><p>Ouverture de ton espace membre…</p></section></div></main>
+  if (loading) return <main className="cl-shell"><div className="cl-container"><section className="cl-panel" aria-busy="true"><p className="cl-skeleton">Ouverture de ton espace membre…</p><p className="cl-skeleton">Chargement de tes créations…</p></section></div></main>
 
   return (
     <main className="cl-shell">
