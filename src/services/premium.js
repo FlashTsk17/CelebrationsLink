@@ -11,8 +11,15 @@ export const PREMIUM_BENEFITS = [
 
 export async function getMembership() {
   if (!isSupabaseConfigured || !supabase) return null
-  const { data, error } = await supabase.from('profiles').select('id, display_name, access_level, premium_status, premium_activated_at, premium_expires_at').single()
+  const { data, error } = await supabase.from('profiles').select('id, display_name, access_level, premium_status, premium_activated_at, premium_expires_at').maybeSingle()
   if (error) throw error
+  if (!data) return null
+  if (data.access_level === 'premium' && data.premium_status === 'active' && data.premium_expires_at) {
+    const expiresAt = new Date(data.premium_expires_at)
+    if (Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() <= Date.now()) {
+      return { ...data, premium_status: 'expired', access_level: 'member' }
+    }
+  }
   return data
 }
 
