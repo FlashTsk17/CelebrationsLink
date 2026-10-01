@@ -1,0 +1,341 @@
+/* CélébrationsLink — Responsive global layer */
+:root {
+  --cl-gutter: clamp(16px, 4vw, 32px);
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+.cl-app-nav {
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 10px var(--cl-gutter);
+  border-bottom: 1px solid var(--cl-border);
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.cl-app-nav__brand {
+  min-height: var(--cl-touch-min);
+  padding: 8px 0;
+  background: transparent;
+  color: var(--cl-text);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  cursor: pointer;
+}
+
+.cl-app-nav nav,
+.cl-app-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cl-app-nav nav {
+  justify-content: center;
+}
+
+.cl-app-nav a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 11px;
+  border-radius: 10px;
+  color: var(--cl-text-muted);
+  text-decoration: none;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.cl-app-nav a:hover,
+.cl-app-nav a.active {
+  background: var(--cl-primary-soft);
+  color: var(--cl-primary);
+}
+
+.cl-app-nav .cl-premium-link {
+  color: var(--cl-accent);
+}
+
+.cl-container,
+.cl-panel,
+.cl-public-event,
+.cl-celebration {
+  min-width: 0;
+}
+
+.cl-panel,
+.cl-public-event {
+  width: min(100% - 2 * var(--cl-gutter), 900px);
+}
+
+.cl-studio-panel {
+  width: min(100% - 2 * var(--cl-gutter), 1040px);
+}
+
+.cl-action-card,
+.cl-account-card,
+.cl-template-card,
+.cl-type-card {
+  min-width: 0;
+}
+
+.cl-action-card__body,
+.cl-account-card__body {
+  min-width: 0;
+}
+
+.cl-action-card__body span,
+.cl-account-card__body span,
+.cl-template-card span,
+.cl-live-preview p,
+.cl-public-event__description,
+.cl-celebration__message {
+  overflow-wrap: anywhere;
+}
+
+.cl-share-actions,
+.cl-studio-nav {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .cl-app-nav {
+    grid-template-columns: auto 1fr;
+  }
+
+  .cl-app-nav nav {
+    order: 3;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .cl-app-nav nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cl-app-nav__account {
+    justify-content: flex-end;
+  }
+
+  .cl-app-nav a {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .cl-app-nav {
+    gap: 8px 12px;
+    padding: 8px var(--cl-gutter);
+  }
+
+  .cl-app-nav__brand {
+    font-size: .95rem;
+  }
+
+  .cl-app-nav__account {
+    gap: 4px;
+  }
+
+  .cl-app-nav__account a {
+    padding-inline: 8px;
+    font-size: .8rem;
+  }
+
+  .cl-home-hero {
+    padding-top: clamp(42px, 10vw, 64px);
+  }
+
+  .cl-home-actions {
+    margin-top: 4px;
+  }
+
+  .cl-panel,
+  .cl-studio-panel,
+  .cl-public-event {
+    border-radius: var(--cl-radius-lg);
+  }
+
+  .cl-rsvp-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --cl-gutter: 12px;
+  }
+
+  .cl-app-nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .cl-app-nav nav {
+    gap: 4px;
+  }
+
+  .cl-app-nav__account .cl-premium-link {
+    display: none;
+  }
+
+  .cl-app-nav__account a {
+    min-height: 38px;
+  }
+
+  .cl-hero {
+    padding-top: 40px;
+  }
+
+  .cl-brand {
+    font-size: clamp(30px, 11vw, 44px);
+  }
+
+  .cl-panel {
+    padding: 18px;
+  }
+
+  .cl-home-hero__title {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .cl-action-card {
+    gap: 11px;
+    padding: 15px;
+  }
+
+  .cl-action-card__emoji {
+    font-size: 30px;
+  }
+
+  .cl-action-card__body strong {
+    font-size: 16px;
+  }
+
+  .cl-type-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cl-studio-steps {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 3px;
+  }
+
+  .cl-studio-steps button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .cl-live-preview {
+    min-height: 0;
+  }
+
+  .cl-live-preview h2 {
+    font-size: 1.6rem;
+  }
+
+  .cl-premium-hero {
+    padding-top: 44px;
+  }
+
+  .cl-premium-card {
+    padding: 20px;
+    border-radius: var(--cl-radius-lg);
+  }
+
+  .cl-premium-card__intro {
+    align-items: flex-start;
+  }
+
+  .cl-premium-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-rsvp-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cl-rsvp-status {
+    align-self: flex-start;
+  }
+
+  .cl-share-actions,
+  .cl-studio-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-share-actions .cl-secondary-button,
+  .cl-studio-nav .cl-secondary-button,
+  .cl-studio-nav .cl-primary-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .cl-app-nav__brand {
+    max-width: 145px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cl-app-nav__account a {
+    font-size: .75rem;
+    padding-inline: 6px;
+  }
+
+  .cl-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-rsvp-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cl-public-event h1,
+  .cl-celebration__hero h1 {
+    font-size: 2.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
