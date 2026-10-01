@@ -75,10 +75,11 @@ export async function getCelebrationBySlugAsync(slug) {
     const { data, error } = await supabase.from('celebrations').select('*').eq('slug', slug).eq('status', 'published').maybeSingle()
     if (error) throw error
     if (data) {
-      if (data.music?.storage === 'supabase' && data.music.storagePath) {
-        try { data.music.src = await getMusicPlaybackUrl(data.music) } catch { data.music.src = null }
+      const celebration = { ...data, music: data.music ? { ...data.music } : null }
+      if (celebration.music?.storage === 'supabase' && celebration.music.storagePath) {
+        try { celebration.music.src = await getMusicPlaybackUrl(celebration.music) } catch { celebration.music.src = null }
       }
-      return data
+      return celebration
     }
   }
   return getCelebrationBySlug(slug)
