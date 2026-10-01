@@ -34,7 +34,7 @@ export default function Premium() {
     finally { setSaving(false) }
   }
 
-  if (user === undefined) return <main className="cl-shell"><div className="cl-container"><section className="cl-panel"><p>Chargement de Premium…</p></section></div></main>
+  if (user === undefined) return <main className="cl-shell"><div className="cl-container"><section className="cl-panel" aria-busy="true"><p className="cl-skeleton">Chargement de Premium…</p><p className="cl-skeleton">Vérification de ton espace…</p></section></div></main>
   if (!user) return <main className="cl-shell"><div className="cl-container"><section className="cl-panel cl-premium-page"><p className="cl-eyebrow">Premium 🟣</p><h1>Une expérience plus riche.</h1><p>Premium est réservé aux membres. Crée ton compte gratuitement pour découvrir l’offre.</p><button className="cl-primary-button" type="button" onClick={() => navigate('/membre')}>Devenir Membre gratuitement →</button></section></div></main>
 
   const active = membership?.access_level === 'premium' && membership?.premium_status === 'active'
