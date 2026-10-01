@@ -42,13 +42,7 @@ export async function getMyPremiumRequest() {
 
 export async function getMyProfile() {
   if (!isSupabaseConfigured || !supabase) return null
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) return null
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id,display_name,access_level,premium_status,premium_activated_at,premium_expires_at')
-    .eq('id', auth.user.id)
-    .maybeSingle()
+  const { data, error } = await supabase.rpc('get_my_membership')
   if (error) throw error
-  return data
+  return data?.[0] || null
 }
