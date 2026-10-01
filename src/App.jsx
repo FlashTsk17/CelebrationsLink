@@ -24,6 +24,7 @@ import './styles/home.css'
 import './styles/studio.css'
 import './styles/account.css'
 import './styles/public.css'
+import './styles/responsive.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
