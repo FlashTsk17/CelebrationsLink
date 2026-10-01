@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { signInMember, signUpMember } from '../services/auth.js'
+import { getReturnPath } from '../services/navigationPolicy.js'
 
 export default function MemberAuth() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const returnTo = params.get('returnTo') || '/membre/espace'
+  const returnTo = getReturnPath(params.get('returnTo'), '/membre/espace')
   const reason = params.get('reason')
   const [mode, setMode] = useState(params.get('auth') === 'login' ? 'login' : 'signup')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
@@ -13,7 +14,7 @@ export default function MemberAuth() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const afterAuth = () => navigate(returnTo.startsWith('/') ? returnTo : '/membre/espace', { replace: true })
+  const afterAuth = () => navigate(returnTo, { replace: true })
 
   const submit = async (event) => {
     event.preventDefault(); setError(''); setMessage(''); setLoading(true)
