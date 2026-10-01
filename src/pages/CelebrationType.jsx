@@ -34,7 +34,6 @@ export default function CelebrationType() {
             ))}
           </div>
           <p className="cl-section-note">Ces occasions sont disponibles toute l’année pour créer et partager un vœu.</p>
-          </div>
         </section>
 
         <button className="cl-secondary-button" type="button" onClick={() => navigate('/celebrer')}>← Retour à Célébrer</button>
