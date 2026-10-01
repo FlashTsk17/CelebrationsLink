@@ -15,12 +15,17 @@ async function sha256(value: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
+
   try {
     const { slug, token, action = 'read', payload = {} } = await req.json()
-    if (!slug || !token) return json({ error: 'Lien de gestion invalide.' }, 400)
+    if (typeof slug !== 'string' || !slug || typeof token !== 'string' || !/^[a-f0-9]{64}$/i.test(token)) {
+      return json({ error: 'Lien de gestion invalide.' }, 400)
+    }
+
     const url = Deno.env.get('SUPABASE_URL')
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     if (!url || !serviceKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
+
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const hash = await sha256(token)
     const { data: secret, error: secretError } = await admin
@@ -42,6 +47,7 @@ Deno.serve(async (req) => {
     if (!event) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
 
     if (action === 'update') {
+      if (event.status === 'archived') return json({ error: 'Cet événement est archivé et ne peut plus être modifié.' }, 409)
       const allowed = ['title', 'description', 'host', 'date', 'time', 'location', 'cover', 'template']
       const changes: Record<string, unknown> = {}
       for (const key of allowed) {
@@ -49,26 +55,41 @@ Deno.serve(async (req) => {
           changes[key] = typeof payload[key] === 'string' ? payload[key].trim() : payload[key]
         }
       }
-      if (!changes.title || !changes.host) return json({ error: 'Le titre et l’organisateur sont obligatoires.' }, 400)
-      if (event.mode === 'invitation' && (!changes.date || !changes.time || !changes.location)) {
+
+      const nextTitle = typeof changes.title === 'string' ? changes.title : event.title
+      const nextHost = typeof changes.host === 'string' ? changes.host : event.host
+      const nextDate = changes.date ?? event.date
+      const nextTime = changes.time ?? event.time
+      const nextLocation = typeof changes.location === 'string' ? changes.location : event.location
+
+      if (!nextTitle || !nextHost) return json({ error: 'Le titre et l’organisateur sont obligatoires.' }, 400)
+      if (event.mode === 'invitation' && (!nextDate || !nextTime || !nextLocation)) {
         return json({ error: 'Une invitation doit avoir une date, une heure et un lieu.' }, 400)
       }
-      const { data: updated, error } = await admin.from('events').update(changes).eq('id', event.id)
+      if (!Object.keys(changes).length) return json({ event }, 200)
+
+      const { data: updated, error: updateError } = await admin.from('events').update(changes).eq('id', event.id)
         .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at').single()
-      if (error) throw error
+      if (updateError) throw updateError
       return json({ event: updated })
     }
 
     if (action === 'status') {
       const nextStatus = payload.status
       if (!['published', 'closed', 'archived'].includes(nextStatus)) return json({ error: 'Statut invalide.' }, 400)
-      const { data: updated, error } = await admin.from('events').update({ status: nextStatus }).eq('id', event.id)
+      const { data: updated, error: updateError } = await admin.from('events').update({ status: nextStatus }).eq('id', event.id)
         .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,created_at').single()
-      if (error) throw error
+      if (updateError) throw updateError
       return json({ event: updated })
     }
 
-    const { data: guests, error: guestsError } = await admin.from('guests').select('id,event_id,name,status,message,created_at').eq('event_id', event.id).order('created_at', { ascending: false })
+    if (action !== 'read') return json({ error: 'Action inconnue.' }, 400)
+
+    const { data: guests, error: guestsError } = await admin
+      .from('guests')
+      .select('id,event_id,name,status,message,created_at')
+      .eq('event_id', event.id)
+      .order('created_at', { ascending: false })
     if (guestsError) throw guestsError
     return json({ event, guests: guests || [] })
   } catch (error) {
