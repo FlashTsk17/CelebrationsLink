@@ -1,0 +1,264 @@
+/* CélébrationsLink — Micro-interactions */
+:root {
+  --cl-ease-out: cubic-bezier(.2,.8,.2,1);
+  --cl-ease-soft: cubic-bezier(.22,1,.36,1);
+  --cl-duration-fast: .16s;
+  --cl-duration: .22s;
+  --cl-duration-slow: .38s;
+}
+
+.cl-btn,
+.cl-primary-button,
+.cl-secondary-button,
+.cl-small-button,
+.cl-app-nav a,
+.cl-app-nav__brand,
+.cl-action-card,
+.cl-account-card,
+.cl-type-card,
+.cl-template-card,
+.cl-rsvp__choices button,
+.cl-studio-steps button,
+.cl-photo-picker button {
+  transition:
+    transform var(--cl-duration) var(--cl-ease-out),
+    box-shadow var(--cl-duration) var(--cl-ease-out),
+    border-color var(--cl-duration) ease,
+    background-color var(--cl-duration) ease,
+    color var(--cl-duration) ease,
+    opacity var(--cl-duration) ease;
+}
+
+.cl-primary-button:hover:not(:disabled),
+.cl-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--cl-shadow-md);
+}
+
+.cl-primary-button:active:not(:disabled),
+.cl-secondary-button:active:not(:disabled),
+.cl-small-button:active:not(:disabled),
+.cl-btn:active:not(:disabled),
+.cl-action-card:active,
+.cl-account-card:active,
+.cl-type-card:active,
+.cl-template-card:active,
+.cl-rsvp__choices button:active,
+.cl-studio-steps button:active {
+  transform: translateY(1px) scale(.985);
+}
+
+.cl-secondary-button:hover:not(:disabled),
+.cl-small-button:hover:not(:disabled) {
+  border-color: var(--cl-primary);
+  background: var(--cl-primary-soft);
+}
+
+.cl-action-card:hover,
+.cl-account-card:hover,
+.cl-type-card:hover,
+.cl-template-card:hover {
+  transform: translateY(-3px);
+}
+
+.cl-action-card:hover .cl-action-card__arrow {
+  transform: translateX(4px);
+}
+
+.cl-action-card__arrow {
+  transition: transform var(--cl-duration) var(--cl-ease-out);
+}
+
+.cl-type-card__emoji,
+.cl-template-card__preview,
+.cl-premium-orb,
+.cl-live-preview__icon {
+  transition: transform var(--cl-duration-slow) var(--cl-ease-soft);
+}
+
+.cl-type-card:hover .cl-type-card__emoji,
+.cl-template-card:hover .cl-template-card__preview {
+  transform: scale(1.06);
+}
+
+.cl-premium-orb:hover,
+.cl-live-preview__icon:hover {
+  transform: scale(1.05) rotate(-2deg);
+}
+
+.cl-app-nav__brand:hover {
+  transform: translateY(-1px);
+}
+
+.cl-app-nav a:hover {
+  transform: translateY(-1px);
+}
+
+.cl-form input,
+.cl-form textarea,
+.cl-form select,
+.cl-rsvp input,
+.cl-rsvp textarea,
+.cl-rsvp-tools input,
+.cl-rsvp-tools select,
+.cl-manage-form input,
+.cl-manage-form textarea {
+  transition:
+    border-color var(--cl-duration) ease,
+    box-shadow var(--cl-duration) ease,
+    background-color var(--cl-duration) ease;
+}
+
+.cl-form input:focus,
+.cl-form textarea:focus,
+.cl-form select:focus,
+.cl-rsvp input:focus,
+.cl-rsvp textarea:focus,
+.cl-rsvp-tools input:focus,
+.cl-rsvp-tools select:focus,
+.cl-manage-form input:focus,
+.cl-manage-form textarea:focus {
+  transform: translateY(-1px);
+}
+
+.cl-link-box,
+.cl-share-box,
+.cl-rsvp-success,
+.cl-premium-success,
+.cl-premium-pending,
+.cl-form-error {
+  animation: cl-feedback-in .32s var(--cl-ease-soft) both;
+}
+
+@keyframes cl-feedback-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.cl-success-panel {
+  animation: cl-success-pop .48s var(--cl-ease-soft) both;
+}
+
+@keyframes cl-success-pop {
+  0% { opacity: 0; transform: scale(.97) translateY(10px); }
+  70% { transform: scale(1.01) translateY(-1px); }
+  100% { opacity: 1; transform: none; }
+}
+
+.cl-celebration__gallery figure {
+  transition: transform var(--cl-duration-slow) var(--cl-ease-out), box-shadow var(--cl-duration-slow) ease;
+}
+
+.cl-celebration__gallery figure:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--cl-shadow-lg);
+}
+
+.cl-celebration__gallery img {
+  transition: transform .5s var(--cl-ease-soft);
+}
+
+.cl-celebration__gallery figure:hover img {
+  transform: scale(1.035);
+}
+
+.cl-photo-picker img {
+  transition: transform var(--cl-duration) var(--cl-ease-out), box-shadow var(--cl-duration) ease;
+}
+
+.cl-photo-picker > div:hover img {
+  transform: scale(1.025);
+  box-shadow: var(--cl-shadow-sm);
+}
+
+.cl-premium-link {
+  position: relative;
+}
+
+.cl-premium-link::after {
+  content: '';
+  position: absolute;
+  inset: auto 10px 4px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--cl-duration) var(--cl-ease-out);
+}
+
+.cl-premium-link:hover::after,
+.cl-premium-link.active::after {
+  transform: scaleX(1);
+}
+
+.cl-live-preview {
+  transition: box-shadow var(--cl-duration-slow) ease, transform var(--cl-duration-slow) var(--cl-ease-soft);
+}
+
+.cl-live-preview:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cl-shadow-lg);
+}
+
+.cl-rsvp-status,
+.cl-member-badge,
+.cl-premium-badge {
+  transition: transform var(--cl-duration) var(--cl-ease-out);
+}
+
+.cl-rsvp-status:hover,
+.cl-member-badge:hover,
+.cl-premium-badge:hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-btn,
+  .cl-primary-button,
+  .cl-secondary-button,
+  .cl-small-button,
+  .cl-app-nav a,
+  .cl-app-nav__brand,
+  .cl-action-card,
+  .cl-account-card,
+  .cl-type-card,
+  .cl-template-card,
+  .cl-rsvp__choices button,
+  .cl-studio-steps button,
+  .cl-photo-picker button,
+  .cl-action-card__arrow,
+  .cl-type-card__emoji,
+  .cl-template-card__preview,
+  .cl-premium-orb,
+  .cl-live-preview__icon,
+  .cl-form input,
+  .cl-form textarea,
+  .cl-form select,
+  .cl-rsvp input,
+  .cl-rsvp textarea,
+  .cl-rsvp-tools input,
+  .cl-rsvp-tools select,
+  .cl-manage-form input,
+  .cl-manage-form textarea,
+  .cl-celebration__gallery figure,
+  .cl-celebration__gallery img,
+  .cl-photo-picker img,
+  .cl-premium-link::after,
+  .cl-live-preview,
+  .cl-rsvp-status,
+  .cl-member-badge,
+  .cl-premium-badge {
+    transition: none;
+  }
+
+  .cl-link-box,
+  .cl-share-box,
+  .cl-rsvp-success,
+  .cl-premium-success,
+  .cl-premium-pending,
+  .cl-form-error,
+  .cl-success-panel {
+    animation: none;
+  }
+}
