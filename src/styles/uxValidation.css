@@ -1,0 +1,32 @@
+/* CélébrationsLink — D3.8 UX validation helpers */
+.cl-skeleton {
+  position: relative;
+  overflow: hidden;
+  color: transparent !important;
+  background: var(--cl-surface-soft);
+  border-radius: var(--cl-radius-md);
+  min-height: 18px;
+}
+.cl-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+  animation: cl-skeleton-shimmer 1.25s infinite;
+}
+@keyframes cl-skeleton-shimmer { to { transform: translateX(100%); } }
+
+.cl-form-error[role="alert"],
+.cl-share-feedback[role="status"],
+.cl-rsvp-success[role="status"] {
+  scroll-margin-top: 90px;
+}
+
+button:disabled {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-skeleton::after { animation: none; }
+}
