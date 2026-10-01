@@ -26,6 +26,7 @@ import './styles/account.css'
 import './styles/public.css'
 import './styles/responsive.css'
 import './styles/microInteractions.css'
+import './styles/uxValidation.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
