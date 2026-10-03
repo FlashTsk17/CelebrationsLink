@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getEventBySlug, getEventPublicPath } from '../services/eventService.js'
-import { getRsvpSummary, listRsvps, RSVP_STATUS } from '../services/rsvp.js'
+import { getEventBySlug, getEventPublicPath, listMyEvents } from '../services/eventService.js'
+import { listRsvps, RSVP_STATUS } from '../services/rsvp.js'
 import { copyText, getAbsoluteUrl, shareLink } from '../services/share.js'
 import { getEventType } from '../data/eventTypes.js'
+import { manageBasicEvent } from '../services/accountlessEvent.js'
 
 const LABELS = {
   [RSVP_STATUS.YES]: 'Oui',
@@ -40,16 +41,33 @@ export default function OrganiserDashboard() {
       setError('')
 
       try {
-        const loadedEvent = await getEventBySlug(slug)
+        const managementToken = sessionStorage.getItem(`cl:management-token:${slug}`)
+        let loadedEvent = null
+        let loadedRsvps = []
+
+        if (managementToken) {
+          const managed = await manageBasicEvent(slug, managementToken, 'read')
+          loadedEvent = managed.event
+          loadedRsvps = loadedEvent?.mode === 'invitation' ? (managed.guests || []) : []
+        } else {
+          const ownedEvents = await listMyEvents()
+          loadedEvent = ownedEvents.find((item) => item.slug === slug) || await getEventBySlug(slug)
+          loadedRsvps = loadedEvent?.mode === 'invitation' ? await listRsvps(loadedEvent.id) : []
+        }
+
         if (!loadedEvent) {
           if (active) setError('Impossible de trouver cet événement sur cet appareil.')
           return
         }
 
-        const loadedRsvps = loadedEvent.mode === 'invitation' ? await listRsvps(loadedEvent.id) : []
-        const loadedSummary = loadedEvent.mode === 'invitation'
-          ? await getRsvpSummary(loadedEvent.id)
-          : { total: 0, yes: 0, maybe: 0, no: 0 }
+        const loadedSummary = loadedRsvps.reduce(
+          (result, rsvp) => {
+            result.total += 1
+            result[rsvp.status] = (result[rsvp.status] || 0) + 1
+            return result
+          },
+          { total: 0, yes: 0, maybe: 0, no: 0 },
+        )
 
         if (active) {
           setEvent(loadedEvent)
@@ -96,7 +114,18 @@ export default function OrganiserDashboard() {
     if (!event || event.mode !== 'invitation') return
     setRefreshing(true)
     try {
-      const [loadedRsvps, loadedSummary] = await Promise.all([listRsvps(event.id), getRsvpSummary(event.id)])
+      const managementToken = sessionStorage.getItem(`cl:management-token:${event.slug}`)
+      const loadedRsvps = managementToken
+        ? (await manageBasicEvent(event.slug, managementToken, 'read')).guests || []
+        : await listRsvps(event.id)
+      const loadedSummary = loadedRsvps.reduce(
+        (result, rsvp) => {
+          result.total += 1
+          result[rsvp.status] = (result[rsvp.status] || 0) + 1
+          return result
+        },
+        { total: 0, yes: 0, maybe: 0, no: 0 },
+      )
       setRsvps(loadedRsvps)
       setSummary(loadedSummary)
       setShareMessage('Réponses actualisées.')
