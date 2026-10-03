@@ -56,7 +56,7 @@ export async function createCelebration(input) {
       animations: input.animations !== false,
       status: 'published',
       owner_id: user.id,
-    }).select('*').single()
+    }).select('id,slug,occasion,recipient,sender,title,message,photos,music,template,animations,status,created_at').single()
     if (error) throw error
     return data
   }
@@ -72,7 +72,7 @@ export function getCelebrationBySlug(slug) {
 
 export async function getCelebrationBySlugAsync(slug) {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase.from('celebrations').select('*').eq('slug', slug).eq('status', 'published').maybeSingle()
+    const { data, error } = await supabase.from('celebrations').select('id,slug,occasion,recipient,sender,title,message,photos,music,template,animations,status,created_at').eq('slug', slug).eq('status', 'published').maybeSingle()
     if (error) throw error
     if (data) {
       const celebration = { ...data, music: data.music ? { ...data.music } : null }
