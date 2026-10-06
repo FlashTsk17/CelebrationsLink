@@ -34,12 +34,18 @@ export async function uploadImageFile(file) {
   })
   if (error) throw error
 
-  const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path)
-  return { path, url: data?.publicUrl || '', fileName: file.name, mimeType: file.type, size: file.size }
+  return { path, url: '', fileName: file.name, mimeType: file.type, size: file.size }
 }
 
 export async function removeImageFile(path) {
   if (!path || !supabase) return
   const { error } = await supabase.storage.from(MEDIA_BUCKET).remove([path])
   if (error) throw error
+}
+
+export async function getImagePlaybackUrl(path, expiresIn = 3600) {
+  if (!path || !supabase) return null
+  const { data, error } = await supabase.storage.from(MEDIA_BUCKET).createSignedUrl(path, expiresIn)
+  if (error) throw error
+  return data?.signedUrl || null
 }
