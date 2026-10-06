@@ -50,7 +50,7 @@ export async function listRsvps(eventId) {
 
   const { data, error } = await supabase
     .from('guests')
-    .select('*')
+    .select('id,event_id,name,status,message,created_at')
     .eq('event_id', eventId)
     .order('created_at', { ascending: false })
 
