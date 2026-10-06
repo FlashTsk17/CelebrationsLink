@@ -1,6 +1,7 @@
 import { createId, readLocal, saveLocal, buildPublicPath } from './storage.js'
 import { supabase, isSupabaseConfigured } from './supabase.js'
 import { getMusicPlaybackUrl } from './musicEngine.js'
+import { getImagePlaybackUrl } from './mediaStorage.js'
 
 const CELEBRATIONS_KEY = 'celebrations'
 
@@ -76,6 +77,14 @@ export async function getCelebrationBySlugAsync(slug) {
     if (error) throw error
     if (data) {
       const celebration = { ...data, music: data.music ? { ...data.music } : null }
+      if (Array.isArray(celebration.photos)) {
+        celebration.photos = await Promise.all(celebration.photos.map(async (photo) => {
+          if (photo?.storage === 'supabase' && photo.storagePath) {
+            try { return { ...photo, src: await getImagePlaybackUrl(photo.storagePath) } } catch { return { ...photo, src: null } }
+          }
+          return photo
+        }))
+      }
       if (celebration.music?.storage === 'supabase' && celebration.music.storagePath) {
         try { celebration.music.src = await getMusicPlaybackUrl(celebration.music) } catch { celebration.music.src = null }
       }
