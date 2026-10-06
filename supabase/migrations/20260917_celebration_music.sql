@@ -1,9 +1,18 @@
 -- CélébrationsLink · V3.4 music persistence
 -- Public playback for published celebrations; uploads remain member-owned.
 
-insert into storage.buckets (id, name, public)
-values ('celebration-music', 'celebration-music', true)
-on conflict (id) do update set public = true;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'celebration-music',
+  'celebration-music',
+  false,
+  15728640,
+  array['audio/mpeg','audio/mp4','audio/wav','audio/x-wav','audio/ogg','audio/webm','audio/aac']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "public can read celebration music" on storage.objects;
 create policy "public can read celebration music"
