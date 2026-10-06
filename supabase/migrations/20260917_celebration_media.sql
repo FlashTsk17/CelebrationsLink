@@ -63,7 +63,14 @@ drop policy if exists "public can read celebration media" on storage.objects;
 create policy "public can read celebration media"
 on storage.objects for select
 to anon, authenticated
-using (bucket_id = 'celebration-media');
+using (
+  bucket_id = 'celebration-media'
+  and exists (
+    select 1 from public.celebrations c
+    where c.status = 'published'
+      and c.photos @> jsonb_build_array(jsonb_build_object('storagePath', name))
+  )
+)
 
 drop policy if exists "members can upload own celebration media" on storage.objects;
 create policy "members can upload own celebration media"
