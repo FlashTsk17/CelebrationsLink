@@ -18,7 +18,14 @@ drop policy if exists "public can read celebration music" on storage.objects;
 create policy "public can read celebration music"
 on storage.objects for select
 to anon, authenticated
-using (bucket_id = 'celebration-music');
+using (
+  bucket_id = 'celebration-music'
+  and exists (
+    select 1 from public.celebrations c
+    where c.status = 'published'
+      and c.music @> jsonb_build_object('storagePath', name)
+  )
+)
 
 drop policy if exists "members can upload own celebration music" on storage.objects;
 create policy "members can upload own celebration music"
