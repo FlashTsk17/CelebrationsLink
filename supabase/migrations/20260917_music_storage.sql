@@ -21,17 +21,14 @@ drop policy if exists "public can read celebration music" on storage.objects;
 create policy "public can read celebration music"
 on storage.objects for select
 to anon, authenticated
-using (bucket_id = 'celebration-music');
-
--- Authenticated members may upload only inside their own user directory.
-drop policy if exists "members can upload celebration music" on storage.objects;
-create policy "members can upload celebration music"
-on storage.objects for insert
-to authenticated
-with check (
+using (
   bucket_id = 'celebration-music'
-  and (storage.foldername(name))[1] = auth.uid()::text
-);
+  and exists (
+    select 1 from public.celebrations c
+    where c.status = 'published'
+      and c.music @> jsonb_build_object('storagePath', name)
+  )
+)
 
 drop policy if exists "members can update celebration music" on storage.objects;
 create policy "members can update celebration music"
