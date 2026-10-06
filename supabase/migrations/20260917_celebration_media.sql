@@ -46,9 +46,18 @@ on public.celebrations for delete
 to authenticated
 using (owner_id = auth.uid());
 
-insert into storage.buckets (id, name, public)
-values ('celebration-media', 'celebration-media', true)
-on conflict (id) do update set public = true;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'celebration-media',
+  'celebration-media',
+  false,
+  8388608,
+  array['image/jpeg','image/png','image/webp','image/gif']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "public can read celebration media" on storage.objects;
 create policy "public can read celebration media"
