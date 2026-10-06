@@ -5,16 +5,10 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values (
   'celebration-music',
   'celebration-music',
-  true,
+  false,
   15728640,
   array[
-    'audio/mpeg',
-    'audio/mp4',
-    'audio/wav',
-    'audio/x-wav',
-    'audio/ogg',
-    'audio/webm',
-    'audio/aac'
+    'audio/mpeg','audio/mp4','audio/wav','audio/x-wav','audio/ogg','audio/webm','audio/aac'
   ]
 )
 on conflict (id) do update set
