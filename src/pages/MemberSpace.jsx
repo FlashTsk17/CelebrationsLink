@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCurrentUser, onAuthStateChange, signOutMember } from '../services/auth.js'
 import { listMyEvents } from '../services/eventService.js'
+import { listMyCelebrations } from '../services/celebrationService.js'
 
 export default function MemberSpace() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [events, setEvents] = useState([])
+  const [celebrations, setCelebrations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -21,7 +23,9 @@ export default function MemberSpace() {
       }
       setUser(currentUser)
       try {
-        setEvents(await listMyEvents())
+        const [memberEvents, memberCelebrations] = await Promise.all([listMyEvents(), listMyCelebrations()])
+        setEvents(memberEvents)
+        setCelebrations(memberCelebrations)
       } catch (loadError) {
         setError(loadError?.message || 'Impossible de charger tes créations.')
       } finally {
@@ -63,11 +67,21 @@ export default function MemberSpace() {
           </div>
 
           <section className="cl-rsvp-list">
-            <h2>Mes créations</h2>
-            {events.length === 0 ? <p className="cl-empty">Tu n’as pas encore de création liée à ce compte.</p> : events.map((event) => (
+            <h2>Mes événements</h2>
+            {events.length === 0 ? <p className="cl-empty">Tu n’as pas encore d’événement lié à ce compte.</p> : events.map((event) => (
               <article className="cl-rsvp-item" key={event.id}>
                 <div><strong>{event.title}</strong><p>{event.mode === 'invitation' ? '💌 Invitation' : '📢 Annonce'}</p></div>
                 <button className="cl-secondary-button" type="button" onClick={() => navigate(`/e/${event.slug}`)}>Voir →</button>
+              </article>
+            ))}
+          </section>
+
+          <section className="cl-rsvp-list">
+            <h2>Mes célébrations</h2>
+            {celebrations.length === 0 ? <p className="cl-empty">Tu n’as pas encore de célébration liée à ce compte.</p> : celebrations.map((celebration) => (
+              <article className="cl-rsvp-item" key={celebration.id}>
+                <div><strong>{celebration.title || `Célébration pour ${celebration.recipient}`}</strong><p>💌 {celebration.occasion || 'Célébration'}</p></div>
+                <button className="cl-secondary-button" type="button" onClick={() => navigate(`/c/${celebration.slug}`)}>Voir →</button>
               </article>
             ))}
           </section>
