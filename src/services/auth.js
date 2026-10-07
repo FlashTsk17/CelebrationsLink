@@ -1,5 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabase.js'
 
+export { isSupabaseConfigured }
+
 export async function getCurrentUser() {
   if (!isSupabaseConfigured || !supabase) return null
   const { data, error } = await supabase.auth.getUser()
