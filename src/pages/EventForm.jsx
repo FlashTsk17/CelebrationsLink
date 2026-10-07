@@ -50,14 +50,14 @@ export default function EventForm({ mode }) {
           <p>{mode === 'invitation' ? 'Donne à tes invités toutes les informations utiles.' : 'Présente ton événement simplement et partage le lien.'}</p>
 
           <form className="cl-form" onSubmit={submit}>
-            <label>Titre de l’événement<input value={form.title} onChange={update('title')} placeholder="Ex. Mariage de Sarah & David" required /></label>
-            <label>Organisé par<input value={form.host} onChange={update('host')} placeholder="Ex. La famille ADIDO" required /></label>
+            <label>Titre de l’événement<input value={form.title} onChange={update('title')} placeholder="Ex. Mariage de Juliette & Jules" required /></label>
+            <label>Organisé par<input value={form.host} onChange={update('host')} placeholder="Ex. La famille Martin" required /></label>
             <label>Description<textarea value={form.description} onChange={update('description')} placeholder="Quelques mots pour présenter l’événement…" rows="4" /></label>
             <div className="cl-form-row">
               <label>Date<input type="date" value={form.date} onChange={update('date')} required={mode === 'invitation'} /></label>
               <label>Heure<input type="time" value={form.time} onChange={update('time')} required={mode === 'invitation'} /></label>
             </div>
-            <label>Lieu {mode === 'invitation' && <span>(obligatoire)</span>}<input value={form.location} onChange={update('location')} placeholder="Ex. Salle des fêtes, Cotonou" required={mode === 'invitation'} /></label>
+            <label>Lieu {mode === 'invitation' && <span>(obligatoire)</span>}<input value={form.location} onChange={update('location')} placeholder="Ex. Domaine des Palmiers, Cotonou" required={mode === 'invitation'} /></label>
             {error && <p className="cl-form-error" role="alert">{error}</p>}
             <button className="cl-primary-button" type="submit" disabled={saving}>{saving ? 'Création en cours…' : 'Créer et continuer →'}</button>
           </form>
