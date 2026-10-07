@@ -31,7 +31,7 @@ export default function AuthModal({ mode = 'signup', onClose, onSuccess }) {
         <h2 id="auth-title">{view === 'signup' ? 'Créer ton espace' : 'Entrer dans ton espace'}</h2>
         <p>{view === 'signup' ? 'Tes créations te suivent, sans perdre la simplicité de CélébrationsLink.' : 'Retrouve tes créations et continue ton parcours.'}</p>
         <form className="cl-form" onSubmit={submit}>
-          {view === 'signup' && <label>Prénom ou nom<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex. Juliette" autoComplete="name" required /></label>}
+          {view === 'signup' && <label>Prénom ou nom<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex. Anna" autoComplete="name" required /></label>}
           <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="vous@exemple.com" autoComplete="email" required /></label>
           <label>Mot de passe<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="8 caractères minimum" autoComplete={view === 'signup' ? 'new-password' : 'current-password'} minLength="8" required /></label>
           {error && <p className="cl-form-error" role="alert">{error}</p>}
