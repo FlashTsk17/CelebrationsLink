@@ -55,7 +55,7 @@ export async function listMyEvents() {
   if (!userId) return []
   const { data, error } = await supabase.from('events')
     .select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,owner_id,created_at')
-    .eq('owner_id', userId).order('created_at', { ascending: false })
+    .eq('owner_id', userId).order('created_at', { ascending: false }).limit(50)
   if (error) throw error
   return data || []
 }
