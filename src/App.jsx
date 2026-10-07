@@ -18,6 +18,7 @@ import Premium from './pages/Premium.jsx'
 import AdminPremium from './pages/AdminPremium.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 import AppNavigation from './components/AppNavigation.jsx'
+import InstallPrompt from './components/InstallPrompt.jsx'
 import './styles/app.css'
 import './styles/designTokens.css'
 import './styles/home.css'
@@ -27,6 +28,7 @@ import './styles/public.css'
 import './styles/responsive.css'
 import './styles/microInteractions.css'
 import './styles/uxValidation.css'
+import './styles/premiumExperience.css'
 
 export default function App() {
   return <BrowserRouter><AppNavigation /><Routes>
@@ -47,5 +49,5 @@ export default function App() {
     <Route path="/e/:slug" element={<PublicEvent />} />
     <Route path="/c/:slug" element={<Celebration />} />
     <Route path="*" element={<ComingSoon />} />
-  </Routes></BrowserRouter>
+  </Routes><InstallPrompt /></BrowserRouter>
 }
