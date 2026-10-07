@@ -1,0 +1,13 @@
+{
+  "name":"CélébrationsLink",
+  "short_name":"CélébrationsLink",
+  "description":"Crée, annonce, invite, célèbre et partage des expériences digitales mémorables.",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#101326",
+  "theme_color":"#7357ff",
+  "lang":"fr",
+  "icons":[
+    {"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
