@@ -67,6 +67,19 @@ export async function createCelebration(input) {
   return celebration
 }
 
+export async function listMyCelebrations() {
+  if (!isSupabaseConfigured || !supabase) return []
+  const { data: auth } = await supabase.auth.getUser()
+  const userId = auth?.user?.id
+  if (!userId) return []
+  const { data, error } = await supabase.from('celebrations')
+    .select('id,slug,occasion,recipient,sender,title,message,template,animations,status,created_at')
+    .eq('owner_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
 export function getCelebrationBySlug(slug) {
   return readLocal(CELEBRATIONS_KEY, []).find((item) => item.slug === slug) || null
 }
