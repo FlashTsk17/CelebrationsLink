@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getEventType } from '../data/eventTypes.js'
 import { createEvent, getEventPublicPath } from '../services/eventService.js'
+import { getCurrentUser } from '../services/auth.js'
 
 export default function EventForm({ mode }) {
   const navigate = useNavigate()
@@ -25,6 +26,13 @@ export default function EventForm({ mode }) {
 
     setSaving(true)
     try {
+      if (mode === 'invitation') {
+        const user = await getCurrentUser()
+        if (!user) {
+          navigate(`/membre?auth=signup&returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+          return
+        }
+      }
       const result = await createEvent({ ...form, type: typeId, mode })
       sessionStorage.removeItem('cl:event-type')
 
