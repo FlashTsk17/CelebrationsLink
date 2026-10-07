@@ -27,7 +27,7 @@ export default function Organiser() {
       <section className="cl-home-bento">
         <div className="cl-bento-intro"><div><p className="cl-eyebrow">Choisir un format</p><h2>Deux façons de commencer.</h2></div><p>Tu pourras ensuite choisir l’occasion et personnaliser les informations.</p></div>
         <div className="cl-bento-grid">
-          {formats.map((item) => <button key={item.mode} className={'cl-bento-card ' + (item.tone === 'main' ? 'cl-bento-card--main' : 'cl-bento-card--soft')} type="button" onClick={() => navigate('/organiser/type?mode=' + item.mode)}><span className="cl-bento-card__icon">{item.icon}</span><h3>{item.title}</h3><p>{item.text}</p><span className="cl-bento-card__arrow">↗</span></button>)}
+          {formats.map((item) => <button key={item.mode} className={'cl-bento-card ' + (item.tone === 'main' ? 'cl-bento-card--main' : 'cl-bento-card--soft')} type="button" onClick={() => navigate('/organiser/type?mode=' + item.mode)}><span className="cl-bento-card__icon">{item.icon}</span><h3>{item.title}</h3><p>{item.text}</p><span className="cl-bento-card__action">Choisir ce format</span></button>)}
           <button className="cl-bento-card cl-bento-card--warm" type="button" onClick={() => navigate('/celebrer/type')}><span className="cl-bento-card__icon">💫</span><h3>Plutôt un vœu ?</h3><p>Change de parcours sans perdre ton idée.</p><span className="cl-bento-card__arrow">↗</span></button>
         </div>
       </section>
