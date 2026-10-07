@@ -33,7 +33,7 @@ export default function PublicCelebration() {
       {photos.length > 0 && <div className="cl-celebration-gallery" aria-label="Souvenirs"><h2>📸 Souvenirs</h2><div>{photos.map((photo, i) => <img key={i} src={photo.src || photo} alt={`Souvenir ${i + 1}`} loading="lazy" />)}</div></div>}
       {music && <div className="cl-celebration-music"><audio src={music} controls loop muted={muted} preload="metadata" /><button type="button" className="cl-small-button" onClick={() => setMuted((v) => !v)}>{muted ? '🔇 Muet' : '🔊 Son'}</button></div>}
       {celebration.animations && <p className="cl-celebration-animation-note">✨ Une petite touche de magie est activée</p>}
-      <button className="cl-primary-button" type="button" onClick={share}>Partager cette célébration ↗</button>
+      <button className="cl-primary-button" type="button" onClick={share}>Partager cette célébration</button>
       <div className="cl-footer">Créé avec CélébrationsLink · Crée. Annonce. Invite. Célèbre. Partage. ❤️</div>
     </section></div>
   </main>
