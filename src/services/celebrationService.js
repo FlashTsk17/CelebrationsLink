@@ -38,6 +38,13 @@ function buildCelebration(input, id, slug) {
 
 export async function createCelebration(input) {
   const { data: { user } = {} } = supabase ? await supabase.auth.getUser() : { data: {} }
+  if (input.persistence === 'cloud' && (!isSupabaseConfigured || !supabase)) {
+    throw new Error('La sauvegarde cloud n’est pas configurée sur cette version du site. Ouvre le site principal après sa mise à jour, puis réessaie.')
+  }
+  if (input.persistence === 'cloud' && !user) {
+    throw new Error('Connecte-toi à ton compte Membre avant d’enregistrer cette célébration dans le cloud.')
+  }
+
   const shouldCloudSave = Boolean(isSupabaseConfigured && supabase && user && input.persistence === 'cloud')
   const base = input.title || input.recipient || input.occasion
   const localCelebrations = readLocal(CELEBRATIONS_KEY, [])
