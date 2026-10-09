@@ -70,7 +70,7 @@ using (
     where c.status = 'published'
       and c.photos @> jsonb_build_array(jsonb_build_object('storagePath', name))
   )
-)
+);
 
 drop policy if exists "members can upload own celebration media" on storage.objects;
 create policy "members can upload own celebration media"
