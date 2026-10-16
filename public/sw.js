@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'celebrationslink-static-'
-const CACHE_NAME = `${CACHE_PREFIX}v2'
+const CACHE_NAME = `${CACHE_PREFIX}v2`
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting())
