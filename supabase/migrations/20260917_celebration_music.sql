@@ -25,7 +25,7 @@ using (
     where c.status = 'published'
       and c.music @> jsonb_build_object('storagePath', name)
   )
-)
+);
 
 drop policy if exists "members can upload own celebration music" on storage.objects;
 create policy "members can upload own celebration music"
