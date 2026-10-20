@@ -37,6 +37,15 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_member();
 
+-- Backfill profiles for accounts that existed before this trigger was installed.
+-- Do not overwrite an existing profile or its membership fields.
+insert into public.profiles (id, display_name)
+select
+  u.id,
+  coalesce(u.raw_user_meta_data ->> 'display_name', '')
+from auth.users u
+on conflict (id) do nothing;
+
 create index if not exists events_owner_id_idx on public.events(owner_id);
 
 drop policy if exists "public can read published events" on public.events;
