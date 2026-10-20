@@ -25,12 +25,14 @@ Ce guide décrit l'ordre recommandé pour un **nouveau projet Supabase vide**. L
 - Les scripts n'ont pas été exécutés sur le projet Supabase réel et ne sont pas encore validés par un test d'intégration.
 - Après installation, vérifier dans Table Editor la présence de `events`, `guests`, `profiles`, `premium_requests`, `studio_requests` et `celebrations`.
 - Vérifier que le trigger `on_auth_user_created` existe avant de tester l'inscription.
-- Les fonctions Edge `create-event` et `manage-basic-event` doivent être déployées et configurées séparément avec leurs secrets serveur.
+- Le fichier `supabase/config.toml` désactive la vérification JWT automatique uniquement pour `create-event` et `manage-basic-event`, car ces fonctions valident elles-mêmes l'utilisateur ou le jeton de gestion. Déployer ces fonctions avec cette configuration; ne pas désactiver la validation interne.
+- Les fonctions Edge `create-event` et `manage-basic-event` doivent être déployées et configurées séparément. Les clés Supabase injectées automatiquement sont privilégiées uniquement côté serveur.
 - **Ne jamais** exposer `SUPABASE_SERVICE_ROLE_KEY` dans le frontend ou dans une variable `VITE_*`. Le navigateur ne doit utiliser que l'URL Supabase et la clé anon/publishable.
 - Le script de fondation active RLS et garde la liste des invités privée. Les politiques RLS ne remplacent pas les tests fonctionnels.
 
 ## Points de vérification connus
 
+- Les réponses RSVP publiques doivent utiliser uniquement `INSERT`, sans demander la ligne insérée en retour (`INSERT ... SELECT`), afin de garder la liste des invités privée.
 - Le script initial `20261018_initial_events_guests.sql` fournit les tables de base qui manquaient.
 - La migration `20260917_celebration_music.sql` a été corrigée dans la branche de consolidation pour terminer correctement la politique SQL de lecture.
 - Le fichier `20260917_music_storage.sql` contient également cette erreur historique et doit rester exclu de l'ordre recommandé jusqu'à correction.
