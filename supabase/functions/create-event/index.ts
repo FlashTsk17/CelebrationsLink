@@ -25,8 +25,13 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    // Support both legacy keys and the current Supabase named-key environment.
+    const secretKeysRaw = Deno.env.get('SUPABASE_SECRET_KEYS')
+    const publishableKeysRaw = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
+    const secretKeys = secretKeysRaw ? JSON.parse(secretKeysRaw) : {}
+    const publishableKeys = publishableKeysRaw ? JSON.parse(publishableKeysRaw) : {}
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || secretKeys.default
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || publishableKeys.default
     if (!supabaseUrl || !serviceRoleKey || !anonKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
 
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
