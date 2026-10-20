@@ -1,0 +1,11 @@
+# Supabase project configuration for CélébrationsLink.
+# These endpoints perform their own authorization:
+# - create-event validates an optional user JWT and validates all input.
+# - manage-basic-event validates a high-entropy management token.
+# Disable gateway JWT parsing so calls using modern publishable keys are not
+# mistaken for JWTs. Never put a secret/service-role key in this file.
+[functions.create-event]
+verify_jwt = false
+
+[functions.manage-basic-event]
+verify_jwt = false
