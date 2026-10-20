@@ -36,3 +36,19 @@ Ce guide décrit l'ordre recommandé pour un **nouveau projet Supabase vide**. L
 - Le script initial `20261018_initial_events_guests.sql` fournit les tables de base qui manquaient.
 - La migration `20260917_celebration_music.sql` a été corrigée dans la branche de consolidation pour terminer correctement la politique SQL de lecture.
 - Le fichier `20260917_music_storage.sql` contient également cette erreur historique et doit rester exclu de l'ordre recommandé jusqu'à correction.
+
+## Migration tooling warning
+
+The filenames in this repository use mixed/legacy date prefixes, and `schema.sql` is a standalone script, not a file in `supabase/migrations/`. Therefore, the numbered list above is a **manual SQL Editor runbook only**; it is not safe to assume that `supabase db push` will reproduce that order. In particular, `20261018_initial_events_guests.sql` sorts later than the September/October 1 migrations when migration tooling orders files by timestamp, while those older scripts depend on `events`, `guests`, or tables from `schema.sql`.
+
+Before using Supabase CLI or automated deployment, normalize all migration names to unique 14-digit timestamps, move the foundation before every dependent migration, and convert `schema.sql` into a versioned migration (or otherwise ensure its tables exist before dependent migrations). Then validate from a clean disposable database and run RLS tests. Do not use `db reset` against production; it can recreate/drop local database objects.
+
+## Audit findings / release blockers
+
+- **Migration order is not yet CLI-safe** (see warning above).
+- **No clean-database integration test has been run.** SQL review alone does not prove that all policies, triggers, storage policies, grants, and RPCs apply successfully together.
+- **Existing production state is unknown.** The production project must be inspected and backed up before any migration is applied; do not assume an empty schema merely because the Table Editor appeared empty.
+- **Edge Functions are not deployed by adding `config.toml` to GitHub.** Deploy both functions and set/check server-side environment keys separately after reviewing the Supabase project configuration.
+- **Abuse protection remains incomplete.** Public accountless event creation and public RSVP submission need server-side input-size limits and rate limiting before production exposure.
+- **Storage URLs need an end-to-end check.** Images and music are in private buckets and the app creates signed URLs; verify that published content can generate valid signed URLs without exposing other users' files.
+- **No automated RLS tests are included yet.** Add allow/deny tests for anonymous visitors, owners, unrelated signed-in users, and Premium fields before release.
