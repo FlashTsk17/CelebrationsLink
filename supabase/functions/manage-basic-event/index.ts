@@ -23,7 +23,10 @@ Deno.serve(async (req) => {
     }
 
     const url = Deno.env.get('SUPABASE_URL')
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    // Support both legacy service-role and current named secret keys.
+    const secretKeysRaw = Deno.env.get('SUPABASE_SECRET_KEYS')
+    const secretKeys = secretKeysRaw ? JSON.parse(secretKeysRaw) : {}
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || secretKeys.default
     if (!url || !serviceKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
