@@ -17,13 +17,18 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
 
   try {
-    const { slug, token, action = 'read', payload = {} } = await req.json()
-    if (typeof slug !== 'string' || !slug || typeof token !== 'string' || !/^[a-f0-9]{64}$/i.test(token)) {
+    const input = await req.json()
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return json({ error: 'Données invalides.' }, 400)
+    const { slug, token, action = 'read', payload = {} } = input
+    if (typeof slug !== 'string' || !/^[a-z0-9-]{1,80}$/i.test(slug) || typeof token !== 'string' || !/^[a-f0-9]{64}$/i.test(token)) {
       return json({ error: 'Lien de gestion invalide.' }, 400)
     }
 
     const url = Deno.env.get('SUPABASE_URL')
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    // Support both legacy service-role and current named secret keys.
+    const secretKeysRaw = Deno.env.get('SUPABASE_SECRET_KEYS')
+    const secretKeys = secretKeysRaw ? JSON.parse(secretKeysRaw) : {}
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || secretKeys.default
     if (!url || !serviceKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -47,6 +52,7 @@ Deno.serve(async (req) => {
     if (!event) return json({ error: 'Lien de gestion invalide ou expiré.' }, 401)
 
     if (action === 'update') {
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return json({ error: 'Données de modification invalides.' }, 400)
       if (event.status === 'archived') return json({ error: 'Cet événement est archivé et ne peut plus être modifié.' }, 409)
       const allowed = ['title', 'description', 'host', 'date', 'time', 'location', 'cover', 'template']
       const changes: Record<string, unknown> = {}
@@ -62,8 +68,10 @@ Deno.serve(async (req) => {
       const nextTime = changes.time ?? event.time
       const nextLocation = typeof changes.location === 'string' ? changes.location : event.location
 
-      if (!nextTitle || !nextHost) return json({ error: 'Le titre et l’organisateur sont obligatoires.' }, 400)
-      if (event.mode === 'invitation' && (!nextDate || !nextTime || !nextLocation)) {
+      if (typeof nextTitle !== 'string' || !nextTitle.trim() || nextTitle.length > 160 || typeof nextHost !== 'string' || !nextHost.trim() || nextHost.length > 120) return json({ error: 'Le titre (160 caractères max.) et l’organisateur (120 caractères max.) sont obligatoires.' }, 400)
+      if (typeof changes.description === 'string' && changes.description.length > 5000) return json({ error: 'La description est trop longue.' }, 400)
+      if (typeof nextLocation !== 'string' || nextLocation.length > 300 || (typeof changes.cover === 'string' && changes.cover.length > 2000) || (typeof changes.template === 'string' && changes.template.length > 80) || (typeof nextTime === 'string' && nextTime.length > 40)) return json({ error: 'Un des champs dépasse la taille autorisée.' }, 400)
+      if (event.mode === 'invitation' && (!nextDate || !/^\d{4}-\d{2}-\d{2}$/.test(String(nextDate)) || !nextTime || !nextLocation)) {
         return json({ error: 'Une invitation doit avoir une date, une heure et un lieu.' }, 400)
       }
       if (!Object.keys(changes).length) return json({ event }, 200)
@@ -75,6 +83,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'status') {
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return json({ error: 'Données de statut invalides.' }, 400)
       const nextStatus = payload.status
       if (!['published', 'closed', 'archived'].includes(nextStatus)) return json({ error: 'Statut invalide.' }, 400)
       const { data: updated, error: updateError } = await admin.from('events').update({ status: nextStatus }).eq('id', event.id)

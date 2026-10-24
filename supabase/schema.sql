@@ -114,6 +114,7 @@ with check (
   )
 );
 
+drop policy if exists "organizer can update own guests" on public.guests;
 create policy "organizer can update own guests"
 on public.guests for update
 to authenticated
@@ -124,6 +125,7 @@ with check (
   exists (select 1 from public.events e where e.id = guests.event_id and e.owner_id = auth.uid())
 );
 
+drop policy if exists "organizer can delete own guests" on public.guests;
 create policy "organizer can delete own guests"
 on public.guests for delete
 to authenticated

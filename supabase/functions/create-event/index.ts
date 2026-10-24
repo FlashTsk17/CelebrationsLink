@@ -25,31 +25,47 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ error: 'Méthode non autorisée.' }, 405)
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    // Support both legacy keys and the current Supabase named-key environment.
+    const secretKeysRaw = Deno.env.get('SUPABASE_SECRET_KEYS')
+    const publishableKeysRaw = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
+    const secretKeys = secretKeysRaw ? JSON.parse(secretKeysRaw) : {}
+    const publishableKeys = publishableKeysRaw ? JSON.parse(publishableKeysRaw) : {}
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || secretKeys.default
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || publishableKeys.default
     if (!supabaseUrl || !serviceRoleKey || !anonKey) return json({ error: 'Configuration serveur Supabase manquante.' }, 500)
 
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const authHeader = request.headers.get('Authorization')
     let userId: string | null = null
-    if (authHeader?.startsWith('Bearer ')) {
+    if (authHeader) {
+      if (!authHeader.startsWith('Bearer ')) return json({ error: 'Authentification invalide.' }, 401)
       const authClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } })
-      const { data } = await authClient.auth.getUser()
-      userId = data.user?.id ?? null
+      const { data, error: authError } = await authClient.auth.getUser()
+      if (authError || !data.user) return json({ error: 'Session invalide ou expirée. Reconnecte-toi.' }, 401)
+      userId = data.user.id
     }
 
     const input = await request.json()
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return json({ error: 'Données invalides.' }, 400)
     const title = String(input.title || '').trim()
     const host = String(input.host || '').trim()
-    const mode = input.mode === 'invitation' ? 'invitation' : 'announcement'
-    const type = String(input.type || 'other')
+    const mode = input.mode === 'invitation' ? 'invitation' : input.mode === 'announcement' ? 'announcement' : null
+    const type = String(input.type || 'other').trim()
     const description = String(input.description || '').trim()
     const location = String(input.location || '').trim()
     const date = input.date || null
     const time = input.time || null
+    const cover = String(input.cover || '')
+    const template = String(input.template || 'default').trim()
 
-    if (!title || !host) return json({ error: 'Le titre et l’organisateur sont obligatoires.' }, 400)
-    if (mode === 'invitation' && (!date || !time || !location)) return json({ error: 'Une invitation nécessite une date, une heure et un lieu.' }, 400)
+    if (!mode) return json({ error: 'Type d’événement invalide.' }, 400)
+    if (!title || title.length > 160 || !host || host.length > 120) return json({ error: 'Le titre (160 caractères maximum) et l’organisateur (120 caractères maximum) sont obligatoires.' }, 400)
+    if (description.length > 5000 || location.length > 300 || type.length > 60 || template.length > 80 || cover.length > 2000) {
+      return json({ error: 'Un des champs dépasse la taille autorisée.' }, 400)
+    }
+    if (mode === 'invitation' && (!date || !/^\d{4}-\d{2}-\d{2}$/.test(String(date)) || !time || String(time).length > 40 || !location)) {
+      return json({ error: 'Une invitation nécessite une date valide, une heure et un lieu.' }, 400)
+    }
 
     const baseSlug = slugify(title)
     let event: Record<string, unknown> | null = null
@@ -57,7 +73,7 @@ Deno.serve(async (request) => {
       const slug = index === 0 ? baseSlug : `${baseSlug}-${index + 1}`
       const { data, error } = await service.from('events').insert({
         slug, mode, type, title, description, host, date, time, location,
-        cover: String(input.cover || ''), template: String(input.template || 'default'),
+        cover, template,
         status: 'published', owner_id: userId,
       }).select('id,slug,mode,type,title,description,host,date,time,location,cover,template,status,owner_id,created_at').single()
       if (!error) { event = data; break }

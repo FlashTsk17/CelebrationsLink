@@ -34,14 +34,20 @@ export async function createRsvp(eventId, { name, status, message = '' }) {
     return rsvp
   }
 
-  const { data, error } = await supabase
+  // Do not request the inserted row back: public RSVP submissions must not
+  // receive SELECT access to the private guest list just to confirm a write.
+  const { error } = await supabase
     .from('guests')
     .insert({ event_id: eventId, name: cleanName, status, message: message.trim() })
-    .select()
-    .single()
 
   if (error) throw error
-  return data
+  return {
+    event_id: eventId,
+    name: cleanName,
+    status,
+    message: message.trim(),
+    created_at: new Date().toISOString(),
+  }
 }
 
 export async function listRsvps(eventId) {
