@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       if (typeof nextTitle !== 'string' || !nextTitle.trim() || nextTitle.length > 160 || typeof nextHost !== 'string' || !nextHost.trim() || nextHost.length > 120) return json({ error: 'Le titre (160 caractères max.) et l’organisateur (120 caractères max.) sont obligatoires.' }, 400)
       if (typeof changes.description === 'string' && changes.description.length > 5000) return json({ error: 'La description est trop longue.' }, 400)
       if (typeof nextLocation !== 'string' || nextLocation.length > 300 || (typeof changes.cover === 'string' && changes.cover.length > 2000) || (typeof changes.template === 'string' && changes.template.length > 80) || (typeof nextTime === 'string' && nextTime.length > 40)) return json({ error: 'Un des champs dépasse la taille autorisée.' }, 400)
-      if (event.mode === 'invitation' && (!nextDate || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(nextDate)) || !nextTime || !nextLocation)) {
+      if (event.mode === 'invitation' && (!nextDate || !/^\d{4}-\d{2}-\d{2}$/.test(String(nextDate)) || !nextTime || !nextLocation)) {
         return json({ error: 'Une invitation doit avoir une date, une heure et un lieu.' }, 400)
       }
       if (!Object.keys(changes).length) return json({ event }, 200)
