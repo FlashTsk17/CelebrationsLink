@@ -63,7 +63,7 @@ Deno.serve(async (request) => {
     if (description.length > 5000 || location.length > 300 || type.length > 60 || template.length > 80 || cover.length > 2000) {
       return json({ error: 'Un des champs dépasse la taille autorisée.' }, 400)
     }
-    if (mode === 'invitation' && (!date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date)) || !time || String(time).length > 40 || !location)) {
+    if (mode === 'invitation' && (!date || !/^\d{4}-\d{2}-\d{2}$/.test(String(date)) || !time || String(time).length > 40 || !location)) {
       return json({ error: 'Une invitation nécessite une date valide, une heure et un lieu.' }, 400)
     }
 
