@@ -1,54 +1,38 @@
 # CélébrationsLink — installation Supabase
 
-Ce guide décrit l'ordre recommandé pour un **nouveau projet Supabase vide**. Les migrations de ce dépôt ont été créées à des moments différents : ne lance pas aveuglément tous les fichiers SQL dans l'ordre alphabétique.
+## Migrations versionnées
 
-## Ordre recommandé
+Les migrations de `supabase/migrations/` ont été normalisées en noms à 14 chiffres et ordonnées par dépendance. Pour un **nouveau projet Supabase vide**, Supabase CLI les appliquera dans cet ordre :
 
-1. `migrations/20261018_initial_events_guests.sql` — crée `events` et `guests`.
-2. `schema.sql` — crée les profils, demandes Premium/Studio et les politiques de base.
-3. `migrations/20260917_member_link.sql` — installe le déclencheur de profil à l'inscription. À installer avant de tester la création de compte.
-4. `migrations/20260917_event_management_secrets.sql` — stockage serveur des jetons de gestion; dépend de `events`.
-5. `migrations/20260917_celebration_media.sql` — table `celebrations`, stockage privé des images et politiques.
-6. `migrations/20260917_celebration_music.sql` — bucket musique et politiques d'accès.
-7. `migrations/20261001_premium_server_expiry.sql` — fonction RPC `get_my_membership()`.
-8. `migrations/20261001_security_hardening.sql` — dernière couche de politiques RLS.
+1. `20261024000100_initial_events_guests.sql` — tables `events` et `guests`.
+2. `20261024000200_profiles_and_requests.sql` — profils, demandes Premium/Studio et politiques de base (reprend le contenu de référence de `schema.sql`).
+3. `20261024000300_member_link.sql` — trigger de profil à l'inscription et backfill des comptes Auth déjà existants.
+4. `20261024000400_event_management_secrets.sql` — stockage serveur des hashes de jetons de gestion.
+5. `20261024000500_celebration_media.sql` — table `celebrations`, bucket privé des images et politiques.
+6. `20261024000600_celebration_music.sql` — bucket privé musique et politiques.
+7. `20261024000700_premium_server_expiry.sql` — RPC `get_my_membership()`.
+8. `20261024000800_security_hardening.sql` — couche finale de sécurité RLS.
 
-## Fichiers historiques à ne pas exécuter en plus
+Les anciennes migrations aux préfixes de dates incohérents et les migrations historiques dupliquées ont été retirées du dossier de migrations pour empêcher qu'elles soient appliquées automatiquement dans un ordre incorrect. `supabase/schema.sql` est conservé comme fichier de référence historique; la migration versionnée n° 2 est celle à utiliser avec la CLI.
 
-- `migrations/20260917_celebrations_cloud.sql` : crée une deuxième série de politiques sur la même table que `20260917_celebration_media.sql`. La migration `celebration_media` est retenue dans l'ordre ci-dessus.
-- `migrations/20260917_music_storage.sql` : configure le même bucket que `20260917_celebration_music.sql`. Ne lance pas les deux; la migration `celebration_music` est retenue.
-- `20261001_security_hardening.sql` est à exécuter après la création de toutes les tables qu'il référence.
+## Précautions avant déploiement
 
-## Important
+- **Ne lance pas ces migrations sur la base de production sans inspection préalable et sauvegarde.** Le contenu actuel du projet Supabase doit être vérifié : l'absence de tables dans l'interface ne prouve pas qu'aucun objet ou donnée n'existe.
+- Ces fichiers ont été relus et réordonnés dans GitHub, mais **n'ont pas encore été exécutés contre une base Supabase réelle ni validés par un test d'intégration**.
+- Pour tester, utiliser d'abord une base de développement jetable vide. Vérifier la présence de `events`, `guests`, `profiles`, `premium_requests`, `studio_requests`, `celebrations` et `event_management_secrets`, le trigger `on_auth_user_created), la RPC et les deux buckets.
+- Ne pas lancer `supabase db reset` sur la production : cette commande est destinée à réinitialiser une base locale.
+- Les réponses RSVP publiques doivent faire un `INSERT` sans demander la ligne créée en retour, afin de ne pas nécessiter un droit de lecture public sur la liste des invités.
+- Le fichier `supabase/config.toml` désactive la vérification JWT automatique uniquement pour `create-event` et `manage-basic-event`; les fonctions doivent continuer à valider elles-mêmes l'identité ou le jeton de gestion.
+- Les Edge Functions doivent être déployées séparément. Ajouter le code à GitHub ne les déploie pas sur Supabase.
+- Ne jamais exposer de clé `service_role` ou `secret` dans le frontend, dans une variable `VITE_*`, ni dans un dépôt public. Le navigateur doit utiliser uniquement la clé publique/anon appropriée.
+- Les buckets d'images et de musique sont privés. Tester les URL signées et s'assurer qu'un utilisateur ne peut pas accéder aux fichiers d'un autre utilisateur.
 
-- Ce guide vise un projet **neuf et vide**. Ne l'exécute pas sur une base existante sans audit préalable.
-- Les scripts n'ont pas été exécutés sur le projet Supabase réel et ne sont pas encore validés par un test d'intégration.
-- Après installation, vérifier dans Table Editor la présence de `events`, `guests`, `profiles`, `premium_requests`, `studio_requests` et `celebrations`.
-- Vérifier que le trigger `on_auth_user_created` existe avant de tester l'inscription.
-- Le fichier `supabase/config.toml` désactive la vérification JWT automatique uniquement pour `create-event` et `manage-basic-event`, car ces fonctions valident elles-mêmes l'utilisateur ou le jeton de gestion. Déployer ces fonctions avec cette configuration; ne pas désactiver la validation interne.
-- Les fonctions Edge `create-event` et `manage-basic-event` doivent être déployées et configurées séparément. Les clés Supabase injectées automatiquement sont privilégiées uniquement côté serveur.
-- **Ne jamais** exposer `SUPABASE_SERVICE_ROLE_KEY` dans le frontend ou dans une variable `VITE_*`. Le navigateur ne doit utiliser que l'URL Supabase et la clé anon/publishable.
-- Le script de fondation active RLS et garde la liste des invités privée. Les politiques RLS ne remplacent pas les tests fonctionnels.
+## Contrôles encore nécessaires avant mise en production
 
-## Points de vérification connus
+1. Tester les migrations sur une base de développement vierge et vérifier qu'elles passent toutes dans l'ordre.
+2. Ajouter/exécuter des tests RLS pour visiteur anonyme, propriétaire, autre utilisateur connecté et champs Premium.
+3. Vérifier les variables serveur et déployer les deux Edge Functions.
+4. Tester de bout en bout : création de compte, connexion, création d'événement, ouverture du lien public, RSVP, espace membre et création de célébration.
+5. Vérifier les limites de débit sur les endpoints publics. Les protections anti-abus doivent être confirmées avant d'ouvrir la création anonyme à grande échelle.
 
-- Les réponses RSVP publiques doivent utiliser uniquement `INSERT`, sans demander la ligne insérée en retour (`INSERT ... SELECT`), afin de garder la liste des invités privée.
-- Le script initial `20261018_initial_events_guests.sql` fournit les tables de base qui manquaient.
-- La migration `20260917_celebration_music.sql` a été corrigée dans la branche de consolidation pour terminer correctement la politique SQL de lecture.
-- Le fichier `20260917_music_storage.sql` contient également cette erreur historique et doit rester exclu de l'ordre recommandé jusqu'à correction.
-
-## Migration tooling warning
-
-The filenames in this repository use mixed/legacy date prefixes, and `schema.sql` is a standalone script, not a file in `supabase/migrations/`. Therefore, the numbered list above is a **manual SQL Editor runbook only**; it is not safe to assume that `supabase db push` will reproduce that order. In particular, `20261018_initial_events_guests.sql` sorts later than the September/October 1 migrations when migration tooling orders files by timestamp, while those older scripts depend on `events`, `guests`, or tables from `schema.sql`.
-
-Before using Supabase CLI or automated deployment, normalize all migration names to unique 14-digit timestamps, move the foundation before every dependent migration, and convert `schema.sql` into a versioned migration (or otherwise ensure its tables exist before dependent migrations). Then validate from a clean disposable database and run RLS tests. Do not use `db reset` against production; it can recreate/drop local database objects.
-
-## Audit findings / release blockers
-
-- **Migration order is not yet CLI-safe** (see warning above).
-- **No clean-database integration test has been run.** SQL review alone does not prove that all policies, triggers, storage policies, grants, and RPCs apply successfully together.
-- **Existing production state is unknown.** The production project must be inspected and backed up before any migration is applied; do not assume an empty schema merely because the Table Editor appeared empty.
-- **Edge Functions are not deployed by adding `config.toml` to GitHub.** Deploy both functions and set/check server-side environment keys separately after reviewing the Supabase project configuration.
-- **Abuse protection remains incomplete.** Public accountless event creation and public RSVP submission need server-side input-size limits and rate limiting before production exposure.
-- **Storage URLs need an end-to-end check.** Images and music are in private buckets and the app creates signed URLs; verify that published content can generate valid signed URLs without exposing other users' files.
-- **No automated RLS tests are included yet.** Add allow/deny tests for anonymous visitors, owners, unrelated signed-in users, and Premium fields before release.
+Ce guide ne remplace pas l'audit de l'état actuel de la base de production.
